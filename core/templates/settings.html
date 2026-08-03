@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account Settings — Creative Engine · LS Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+</head>
+<body>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Account settings</div>
+      <div class="page-sub">Update your pipeline configuration</div>
+    </div>
+  </div>
+
+  <div class="section-row" style="grid-template-columns:1fr 1fr;">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Account IDs</div><button class="btn btn-sm">Save changes</button></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">GA4 Property ID</label>
+          <input class="form-input" value="123456789" id="s_ga4id">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">GAds Customer ID</label>
+          <input class="form-input" value="987-654-3210" id="s_gadsid">
+        </div>
+        <div class="info-box" style="margin-bottom:0;">
+          <strong>MCC / Login Customer ID</strong> is managed by LS Digital and cannot be changed here.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">GA4 Measurement Protocol</div><button class="btn btn-sm">Save changes</button></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Measurement ID</label>
+          <input class="form-input" value="G-XXXXXXXXXX" id="s_measurementid">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">MP API Secret</label>
+          <input class="form-input" type="password" value="••••••••••••" id="s_mpsecret">
+          <div class="form-hint">Stored securely in GCS · not visible after saving</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Campaign defaults</div><button class="btn btn-sm">Save changes</button></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Default daily budget (₹)</label>
+            <input class="form-input" value="null">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Default geo target</label>
+            <input class="form-input" value="India">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Bidding strategy</label>
+          <select class="form-input" style="cursor:pointer;">
+            <option>Maximize conversions</option>
+            <option>Target CPA</option>
+            <option>Target ROAS</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Notification email</label>
+          <input class="form-input" value="team@lsdigital.com">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">LS Digital managed (read only)</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="prereq-item">
+          <div class="prereq-icon">🔑</div>
+          <div><div class="prereq-label">GAds credentials</div><div class="prereq-desc">google-ads.yaml — developer token, OAuth2 client · managed by LS Digital</div></div>
+        </div>
+        <div class="prereq-item">
+          <div class="prereq-icon">🔑</div>
+          <div><div class="prereq-label">GA4 service account</div><div class="prereq-desc">ga4_sa.json — Data API read access · managed by LS Digital</div></div>
+        </div>
+        <div class="prereq-item">
+          <div class="prereq-icon">🔑</div>
+          <div><div class="prereq-label">GCS service account</div><div class="prereq-desc">Storage Object Admin on pipeline bucket · managed by LS Digital</div></div>
+        </div>
+        <div class="prereq-item">
+          <div class="prereq-icon">🤖</div>
+          <div><div class="prereq-label">Gemini API key</div><div class="prereq-desc">Used for creative feature extraction · managed by LS Digital</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="{% static 'scripts/sidebar.js' %}"></script>
+<script src="{% static 'scripts/shared.js' %}"></script>
+<script>
+  renderSidebar('settings');
+</script>
+</body>
+</html>

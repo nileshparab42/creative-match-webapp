@@ -1,0 +1,429 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Creative Match</title>
+  <link rel="stylesheet" href="{% static 'styles/styles.css' %}"/>
+  <style>
+    /* ── page layout override ─────────────────────── */
+    body {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── LEFT PANEL ───────────────────────────────── */
+    .login-left {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 36px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* grid overlay */
+    .login-left::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(79,142,247,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,142,247,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .left-glow {
+      position: absolute;
+      width: 420px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(79,142,247,.10), transparent 65%);
+      bottom: -110px; right: -110px;
+      pointer-events: none;
+    }
+    .left-glow-2 {
+      position: absolute;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(167,139,250,.07), transparent 65%);
+      top: 60px; left: -50px;
+      pointer-events: none;
+    }
+
+    /* logo */
+    .left-logo { position: relative; z-index: 1; }
+    .left-logo-mark {
+      font-family: var(--mono);
+      font-size: 10px; color: var(--accent);
+      letter-spacing: 0.14em; text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .left-logo-name { font-size: 15px; font-weight: 600; color: var(--text); }
+
+    /* hero */
+    .left-hero {
+      flex: 1;
+      display: flex; flex-direction: column;
+      justify-content: center; gap: 22px;
+      position: relative; z-index: 1;
+    }
+
+    .left-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(79,142,247,.22);
+      border-radius: 100px; padding: 4px 12px; width: fit-content;
+    }
+    .left-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .left-badge span {
+      font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase;
+    }
+
+    .left-title {
+      font-size: 30px; font-weight: 600; color: var(--text);
+      line-height: 1.22; letter-spacing: -0.5px;
+    }
+    .left-title em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .left-sub {
+      font-size: 13px; color: var(--text-muted);
+      line-height: 1.75; max-width: 320px;
+    }
+
+    /* ── Signature: live metric rows ── */
+    .mini-metrics { display: flex; flex-direction: column; gap: 8px; }
+
+    .metric-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      animation: fadeUp 0.4s ease both;
+    }
+    .metric-row:nth-child(1) { animation-delay: 0.08s; }
+    .metric-row:nth-child(2) { animation-delay: 0.16s; }
+    .metric-row:nth-child(3) { animation-delay: 0.24s; }
+
+    .metric-icon {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: var(--accent-dim); border: 1px solid rgba(79,142,247,.18);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .metric-label { flex: 1; font-size: 12px; color: var(--text-muted); }
+    .metric-value  { font-family: var(--mono); font-size: 13px; color: var(--text); }
+    .metric-ok     { font-family: var(--mono); font-size: 10px; color: var(--success); }
+    .metric-up     { font-family: var(--mono); font-size: 10px; color: var(--success); }
+
+    .left-footer {
+      position: relative; z-index: 1;
+      font-size: 11px; color: var(--text-dim);
+      padding-top: 16px;
+    }
+
+    /* ── RIGHT PANEL ──────────────────────────────── */
+    .login-right {
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px; position: relative; overflow: hidden;
+    }
+
+    /* dot-grid background */
+    .login-right::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(79,142,247,.05) 1px, transparent 1px);
+      background-size: 28px 28px;
+      animation: drift 22s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes drift {
+      from { transform: translateY(0); }
+      to   { transform: translateY(28px); }
+    }
+
+    /* ambient orbs */
+    .login-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(70px); pointer-events: none; z-index: 0;
+    }
+    .login-orb-1 {
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(79,142,247,.07), transparent 70%);
+      top: -80px; right: -60px;
+      animation: float1 10s ease-in-out infinite;
+    }
+    .login-orb-2 {
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, rgba(167,139,250,.06), transparent 70%);
+      bottom: -50px; left: -20px;
+      animation: float2 13s ease-in-out infinite;
+    }
+    @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-14px,18px)} }
+    @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(14px,-14px)} }
+
+    /* ── LOGIN CARD ───────────────────────────────── */
+    .login-card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 380px;
+      background: var(--surface);
+      border: 1px solid var(--border-active);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow:
+        0 0 0 1px rgba(79,142,247,.05),
+        0 8px 24px rgba(0,0,0,.3),
+        0 32px 64px rgba(0,0,0,.35);
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .card-logo-mark {
+      width: 42px; height: 42px; border-radius: 11px;
+      background: linear-gradient(135deg, var(--accent), #7c6ef9);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 18px rgba(79,142,247,.28);
+    }
+
+    .card-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px; color: var(--accent);
+      letter-spacing: 0.14em; text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 14px; height: 1px; background: var(--accent);
+    }
+
+    .card-title {
+      font-size: 20px; font-weight: 600; color: var(--text);
+      letter-spacing: -0.3px; margin-bottom: 4px;
+    }
+    .card-sub {
+      font-size: 13px; color: var(--text-muted);
+      line-height: 1.6; margin-bottom: 24px;
+    }
+
+    /* submit button full width override */
+    .btn-submit {
+      width: 100%; justify-content: center;
+      padding: 11px 16px;
+      font-size: 14px; font-weight: 600;
+      margin-top: 6px;
+    }
+
+    /* divider */
+    .form-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 18px 0;
+    }
+    .form-divider span { flex: 1; height: 1px; background: var(--border); }
+    .form-divider p {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap;
+    }
+
+    /* google btn */
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 10px 16px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted); font-family: var(--sans);
+      font-size: 13px; font-weight: 400;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-google:hover {
+      border-color: var(--border-active); color: var(--text);
+      background: var(--surface);
+    }
+
+    .card-footer-text {
+      margin-top: 20px; text-align: center;
+      font-size: 12px; color: var(--text-dim);
+    }
+    .card-footer-text a {
+      color: var(--accent); text-decoration: none; font-weight: 500;
+    }
+    .card-footer-text a:hover { text-decoration: underline; }
+
+    .error-banner {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 16px; padding: 11px 14px;
+      background: var(--danger-dim);
+      border: 1px solid rgba(242,92,92,.22);
+      border-radius: var(--radius);
+      color: var(--danger); font-size: 12px;
+    }
+
+    /* responsive */
+    @media (max-width: 860px) {
+      body { grid-template-columns: 1fr !important; }
+      .login-left { display: none; }
+      .login-right { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════ LEFT PANEL ════════════ -->
+  <div class="login-left">
+    <div class="left-glow"></div>
+    <div class="left-glow-2"></div>
+
+    <!-- Logo -->
+    <div class="left-logo">
+      <div class="left-logo-mark">Parul University</div>
+      <div class="left-logo-name">Creative Match</div>
+    </div>
+
+    <!-- Hero -->
+    <div class="left-hero">
+
+      <div class="left-badge">
+        <span class="left-badge-dot"></span>
+        <span>Live · Powered by BigQuery</span>
+      </div>
+
+      <h1 class="left-title">
+        Activate your audience<br/>with <em>intelligent</em> data
+      </h1>
+
+      <p class="left-sub">
+        Connect your pipelines, build audience segments, and surface insights that move your campaigns forward.
+      </p>
+
+      <!-- Signature element: live metric preview strips -->
+      <!-- <div class="mini-metrics">
+        <div class="metric-row">
+          <div class="metric-icon">
+            <svg width="14" height="14" fill="none" stroke="#4f8ef7" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+          </div>
+          <span class="metric-label">Active segments</span>
+          <span class="metric-value">24</span>
+          <span class="metric-up">↑ 3 new</span>
+        </div>
+        <div class="metric-row">
+          <div class="metric-icon">
+            <svg width="14" height="14" fill="none" stroke="#4f8ef7" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+            </svg>
+          </div>
+          <span class="metric-label">Last pipeline run</span>
+          <span class="metric-value">2m ago</span>
+          <span class="metric-ok">✓ OK</span>
+        </div>
+        <div class="metric-row">
+          <div class="metric-icon">
+            <svg width="14" height="14" fill="none" stroke="#4f8ef7" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </div>
+          <span class="metric-label">Goal coverage</span>
+          <span class="metric-value">87%</span>
+          <span class="metric-up">↑ 5%</span>
+        </div>
+      </div> -->
+
+    </div>
+
+    <div class="left-footer">© 2025 ActivateIQ · LS Digital</div>
+  </div>
+
+
+  <!-- ════════════ RIGHT PANEL ════════════ -->
+  <div class="login-right">
+    <div class="login-orb login-orb-1"></div>
+    <div class="login-orb login-orb-2"></div>
+
+    <div class="login-card">
+
+      <!-- Logo mark -->
+      <div class="card-logo-mark">
+        <svg width="20" height="20" fill="none" stroke="white" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+
+      <div class="card-eyebrow">Secure Sign-in</div>
+      <h2 class="card-title">Welcome back</h2>
+      <p class="card-sub">Sign in to your ActivateIQ workspace.</p>
+
+      <!-- Form -->
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input class="form-input" type="text" id="username" name="username"
+                 placeholder="Enter your username" autocomplete="username"/>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" name="password"
+                 placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-submit">
+          Sign In
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="form-divider">
+        <span></span><p>or continue with</p><span></span>
+      </div>
+
+      <!-- Google SSO -->
+      <a href="{% url 'google_login' %}" class="btn-google">
+        <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </a>
+
+      <p class="card-footer-text">
+        Don't have access? <a href="/accounts/signup/">Request access</a>
+      </p>
+
+      {% if error %}
+      <div class="error-banner">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ error }}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,178 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Run Pipeline — Creative Engine · LS Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+<style>
+  .main {
+    margin-left: var(--sidebar-width, 100px);
+  }
+</style>
+</head>
+<body>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Manual run</div>
+      <div class="page-sub">Pipeline runs automatically daily at 3:00 AM IST. Use this only for out-of-cycle runs.</div>
+    </div>
+  </div>
+
+  <div class="schedule-banner" style="margin-bottom:24px;">
+    <span>🕒 Next scheduled run: <strong>tomorrow · 3:00 AM IST</strong></span>
+    <span style="color:var(--text-dim);font-size:11px;font-family:var(--mono);">Daily scoring · auto-triggers via Cloud Scheduler</span>
+  </div>
+
+  <div class="section-row" style="grid-template-columns: 1fr 1fr;">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Run configuration</div></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:18px;">
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Mode</label>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" id="modeScore" onclick="setMode('score')">Daily scoring</button>
+            <button class="btn" id="modeTrain" onclick="setMode('train')">Monthly retrain</button>
+          </div>
+          <div class="form-hint" style="margin-top:8px;" id="modeHint">Scores existing users against selected creatives using the current trained model.</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Date range</label>
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" type="date" value="2026-05-04" style="flex:1;">
+            <input class="form-input" type="date" value="2026-06-04" style="flex:1;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Creatives in this run</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);">
+            <div>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--text);" id="runCreativeCount">18 creatives selected</span>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">6 excluded — no click data yet</div>
+            </div>
+            <button class="btn btn-sm" onclick="openCreativeModal()">Change</button>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);">
+          <label class="form-label" style="margin-bottom:4px;">Pipeline steps</label>
+          <label class="toggle-wrap" onclick="this.querySelector('.toggle').classList.toggle('on')">
+            <div class="toggle on"><div class="toggle-thumb"></div></div>
+            Push scored audiences to GA4 via Measurement Protocol
+          </label>
+          <label class="toggle-wrap" onclick="this.querySelector('.toggle').classList.toggle('on')">
+            <div class="toggle on"><div class="toggle-thumb"></div></div>
+            Generate recommendation report (JSON + CSV to GCS)
+          </label>
+          <label class="toggle-wrap" onclick="this.querySelector('.toggle').classList.toggle('on')">
+            <div class="toggle"><div class="toggle-thumb"></div></div>
+            Re-run Gemini extraction (skip if already cached)
+          </label>
+        </div>
+
+        <a href="/run_prediction_script"
+          class="btn btn-primary"
+          style="width:100%;display:flex;justify-content:center;align-items:center;padding:12px;text-decoration:none;">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <polygon points="4,2 14,8 4,14"/>
+            </svg>
+            &nbsp;Trigger manual run
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Pipeline steps</div>
+        <span class="badge badge-gray" id="runStatus">Idle</span>
+      </div>
+      <div class="card-body">
+        <div class="pipeline-steps">
+          <div class="pipeline-step">
+            <div class="step-dot idle" id="s1">1</div>
+            <div class="step-info"><div class="step-name">GA4 + GAds data fetch</div><div class="step-time" id="s1t">Waiting…</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-dot idle" id="s2">2</div>
+            <div class="step-info"><div class="step-name">GCLID join</div><div class="step-time" id="s2t">Waiting…</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-dot idle" id="s3">3</div>
+            <div class="step-info"><div class="step-name">Gemini creative extraction</div><div class="step-time" id="s3t">Waiting…</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-dot idle" id="s4">4</div>
+            <div class="step-info"><div class="step-name">Model scoring</div><div class="step-time" id="s4t">Waiting…</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-dot idle" id="s5">5</div>
+            <div class="step-info"><div class="step-name">GA4 audience push (Measurement Protocol)</div><div class="step-time" id="s5t">Waiting…</div></div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-dot idle" id="s6">6</div>
+            <div class="step-info"><div class="step-name">Generate recommendation report</div><div class="step-time" id="s6t">Waiting…</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="sidebar.js"></script>
+<script src="shared.js"></script>
+<script>
+  renderSidebar('run');
+  renderCreativeModal();
+
+  function setMode(m) {
+    document.getElementById('modeScore').className = m==='score' ? 'btn btn-primary' : 'btn';
+    document.getElementById('modeTrain').className = m==='train' ? 'btn btn-primary' : 'btn';
+    document.getElementById('modeHint').textContent = m === 'score'
+      ? 'Scores existing users against selected creatives using the current trained model.'
+      : 'Retrains the model on the last 30 days of data. Runs automatically on the 1st of each month.';
+  }
+
+  function simulateRun() {
+    const steps  = ['s1','s2','s3','s4','s5','s6'];
+    const labels = ['GA4 + GAds fetched','Joined on GCLID','Gemini extraction done','Model scoring complete','Audiences pushed via MP','Recommendation report saved to GCS'];
+    const times  = ['~48s','~12s','~2m 10s','~35s','~8s','~5s'];
+    let i = 0;
+
+    document.getElementById('runStatus').textContent = 'Running…';
+    document.getElementById('runStatus').className = 'badge badge-accent';
+
+    steps.forEach(id => {
+      document.getElementById(id).className = 'step-dot idle';
+      document.getElementById(id).textContent = steps.indexOf(id) + 1;
+      document.getElementById(id+'t').textContent = 'Waiting…';
+    });
+
+    function next() {
+      if (i > 0) {
+        document.getElementById(steps[i-1]).className = 'step-dot done';
+        document.getElementById(steps[i-1]).textContent = '✓';
+        document.getElementById(steps[i-1]+'t').textContent = labels[i-1] + ' · ' + times[i-1];
+      }
+      if (i < steps.length) {
+        document.getElementById(steps[i]).className = 'step-dot active';
+        document.getElementById(steps[i]+'t').textContent = 'Running…';
+        i++;
+        setTimeout(next, 900 + Math.random()*500);
+      } else {
+        document.getElementById('runStatus').textContent = 'Complete';
+        document.getElementById('runStatus').className = 'badge badge-success';
+      }
+    }
+    next();
+  }
+</script>
+</body>
+</html>

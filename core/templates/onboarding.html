@@ -1,0 +1,309 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup — Creative Engine · LS Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+<style>
+  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .onboard-wrap { width: 520px; background: var(--surface); border: 1px solid var(--border-active); border-radius: var(--radius-lg); padding: 32px; }
+</style>
+</head>
+<body>
+<div class="onboard-wrap">{% csrf_token %}
+  <div class="modal-tag">First time setup · step <span id="stepNum">1</span> of 3</div>
+  <div class="step-indicators">
+    <div class="step-pill active" id="pill1"></div>
+    <div class="step-pill" id="pill2"></div>
+    <div class="step-pill" id="pill3"></div>
+  </div>
+
+  <!-- STEP 1: Account IDs -->
+  <div class="onboard-step visible" id="ostep1">
+    <div class="modal-title">Connect your accounts</div>
+    <div class="modal-sub">Enter your GA4 and Google Ads account details. You'll only need to do this once.</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">GA4 Property ID</label>
+        <input class="form-input" placeholder="e.g. 123456789" id="ga4id">
+        <div class="form-hint">GA4 → Admin → Property settings</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">GAds Customer ID</label>
+        <input class="form-input" placeholder="e.g. 987-654-3210" id="gadsid">
+        <div class="form-hint">Visible in your Google Ads header</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">GA4 Account ID</label>
+        <input class="form-input" placeholder="e.g. 12345678" id="ga4accid">
+        <div class="form-hint">GA4 → Admin → Account details</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bigquery Dataset Path</label>
+        <input class="form-input" placeholder="e.g. dummy.ds.events" id="gadsid">
+        <div class="form-hint">Visible in your Bigquery Table Details</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Note:</strong> Your MCC / agency login ID is pre-configured by LS Digital — you don't need to enter it.
+    </div>
+  </div>
+
+  <!-- STEP 2: GA4 Measurement Protocol secrets -->
+  <div class="onboard-step" id="ostep2">
+    <div class="modal-title">GA4 audience push credentials</div>
+    <div class="modal-sub">These are needed to push scored audiences back into GA4 via Measurement Protocol so campaigns can target them.</div>
+
+    <div class="form-group">
+      <label class="form-label">GA4 Measurement ID</label>
+      <input class="form-input" placeholder="e.g. G-XXXXXXXXXX" id="measurementid">
+      <div class="form-hint">GA4 → Admin → Data Streams → your stream → Measurement ID</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Measurement Protocol API Secret</label>
+      <input class="form-input" type="password" placeholder="Paste your MP API secret" id="mpsecret">
+      <div class="form-hint">GA4 → Admin → Data Streams → your stream → Measurement Protocol API secrets → Create</div>
+    </div>
+
+    <div class="info-box">
+      <strong>How it works:</strong> After the model scores each user, their score is sent to GA4 as a custom event via Measurement Protocol. GA4 then builds audiences from these scores which get synced to Google Ads automatically.
+    </div>
+  </div>
+
+    <!-- STEP 3: Business understanding -->
+    <div class="onboard-step" id="ostep3">
+      <div class="modal-title">Business understanding</div>
+      <div class="modal-sub">
+        Help us understand your business so we can generate better campaign recommendations, audiences, and creatives.
+      </div>
+
+    <div class="form-group">
+        <label class="form-label">Business (LOB)</label>
+        <select class="form-input" id="business" style="cursor:pointer;">
+            <option value="">Select Business</option>
+            <option value="education">Education</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="realestate">Real Estate</option>
+            <option value="retail">Retail</option>
+            <option value="finance">Finance</option>
+        </select>
+        <div class="form-hint">Select your line of business.</div>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Business Parameter</label>
+        <select class="form-input" id="businessParameter" style="cursor:pointer;" disabled>
+            <option value="">Select Business First</option>
+        </select>
+        <div class="form-hint">Choose the relevant business parameter.</div>
+    </div>
+
+    <script>
+    const businessParameters = {
+        education: [
+            "Programme Name",
+            "Course Name",
+            "Department",
+            "Campus"
+        ],
+        healthcare: [
+            "Hospital Name",
+            "Doctor Name",
+            "Specialization",
+            "Department"
+        ],
+        realestate: [
+            "Project Name",
+            "Property Type",
+            "Location",
+            "Builder Name"
+        ],
+        retail: [
+            "Product Category",
+            "Brand",
+            "Store Name",
+            "Collection"
+        ],
+        finance: [
+            "Loan Type",
+            "Insurance Plan",
+            "Investment Product",
+            "Credit Card"
+        ]
+    };
+
+    const businessDropdown = document.getElementById("business");
+    const parameterDropdown = document.getElementById("businessParameter");
+
+    businessDropdown.addEventListener("change", function () {
+        const selectedBusiness = this.value;
+
+        // Reset dropdown
+        parameterDropdown.innerHTML = '<option value="">Select Parameter</option>';
+
+        if (!selectedBusiness) {
+            parameterDropdown.disabled = true;
+            parameterDropdown.innerHTML =
+                '<option value="">Select Business First</option>';
+            return;
+        }
+
+        parameterDropdown.disabled = false;
+
+        businessParameters[selectedBusiness].forEach(param => {
+            const option = document.createElement("option");
+            option.value = param.toLowerCase().replace(/\s+/g, "_");
+            option.textContent = param;
+            parameterDropdown.appendChild(option);
+        });
+    });
+    </script>
+      <div class="form-group">
+        <label class="form-label">Notification email</label>
+        <input
+          class="form-input"
+          type="email"
+          placeholder="you@company.com"
+          id="notifEmail"
+        >
+        <div class="form-hint">We'll notify you about onboarding and campaign generation updates.</div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <span style="font-size:11px;color:var(--text-dim);margin-right:auto;" id="onboardFooterNote"></span>
+      <button class="btn" id="btnBack" style="display:none;" onclick="onboardBack()">← Back</button>
+      <button class="btn btn-primary" id="btnNext" onclick="onboardNext()">Finish →</button>
+    </div>
+
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 3;
+
+function onboardNext() {
+  console.log("Current Step:", currentStep);
+  console.log("Total Steps:", totalSteps);
+  if (currentStep === 1) {
+    const ga4 = document.getElementById('ga4id').value;
+    const gads = document.getElementById('gadsid').value;
+    if (!ga4) { document.getElementById('ga4id').classList.add('error'); return; }
+    if (!gads) { document.getElementById('gadsid').classList.add('error'); return; }
+    document.getElementById('ga4id').classList.remove('error');
+    document.getElementById('gadsid').classList.remove('error');
+  }
+  if (currentStep === 2) {
+    const mid = document.getElementById('measurementid').value;
+    const mp  = document.getElementById('mpsecret').value;
+    if (!mid) { document.getElementById('measurementid').classList.add('error'); return; }
+    if (!mp)  { document.getElementById('mpsecret').classList.add('error'); return; }
+    document.getElementById('measurementid').classList.remove('error');
+    document.getElementById('mpsecret').classList.remove('error');
+  }
+
+  if (currentStep === totalSteps) {
+    const payload = {
+      ga4id: document.getElementById('ga4id').value,
+      gadsid: document.getElementById('gadsid').value,
+      measurementid: document.getElementById('measurementid').value,
+      mpsecret: document.getElementById('mpsecret').value,
+      business: document.getElementById('business').value,
+      businessParameter: document.getElementById('businessParameter').value,
+      notifEmail: document.getElementById('notifEmail').value,
+    };
+
+    function getValue(id) {
+        const el = document.getElementById(id);
+        if (!el) {
+            console.error(`Element with id "${id}" not found`);
+            return "";
+        }
+        return el.value;
+    }
+
+
+
+    const btn = document.getElementById('btnNext');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    fetch('/save-onboarding/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Save failed');
+        return res.json();
+      })
+      .then(() => {
+        window.location.href = '/run_train_script';
+      })
+      .catch(err => {
+        console.error(err);
+        btn.disabled = false;
+        btn.textContent = 'Save & finish →';
+        alert('Something went wrong saving your details. Please try again.');
+      });
+
+    return;
+  }
+
+  goToStep(currentStep + 1);
+}
+
+// Reads Django's CSRF token from cookies for the fetch header above
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function onboardBack() {
+  goToStep(currentStep - 1);
+}
+
+function goToStep(n) {
+  document.getElementById('ostep' + currentStep).classList.remove('visible');
+  document.getElementById('pill' + currentStep).classList.remove('active');
+  document.getElementById('pill' + currentStep).classList.add('done');
+  currentStep = n;
+  document.getElementById('ostep' + currentStep).classList.add('visible');
+  document.getElementById('stepNum').textContent = currentStep;
+
+  for (let i = 1; i <= totalSteps; i++) {
+    const pill = document.getElementById('pill' + i);
+    pill.classList.remove('active', 'done');
+    if (i < currentStep)  pill.classList.add('done');
+    if (i === currentStep) pill.classList.add('active');
+  }
+
+  document.getElementById('btnBack').style.display = currentStep > 1 ? 'inline-flex' : 'none';
+  document.getElementById('btnNext').textContent = currentStep === totalSteps ? 'Save & finish →' : 'Next →';
+//   document.getElementById('onboardFooterNote').textContent = currentStep === 3 ? 'Campaign drafts won\'t be activated automatically — a manager reviews them in GAds first.' : '';
+}
+</script>
+</body>
+</html>

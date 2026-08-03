@@ -1,0 +1,47 @@
+# --- Secrets: never commit these ---
+.env
+.env.*
+!.env.example
+.env.example
+client_secret.json
+frontend_client_secret.json
+*.pem
+*.key
+
+# --- Django ---
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+*.log
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Virtual environments ---
+venv/
+env/
+.venv/
+ENV/
+
+# --- Jupyter / notebooks (ipykernel is in requirements.txt) ---
+.ipynb_checkpoints/
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Cloud / build artifacts ---
+.gcloudignore
+*.tfstate
+*.tfstate.backup

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <style>
+    *, *::before, *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --white: #ffffff;
+        --off-white: #faf9ff;
+        --surface: #f4f2ff;
+        --surface-hover: #ede9ff;
+
+        --purple-light: #ede9ff;
+        --purple-mid: #7c3aed;
+        --purple-strong: #6020c0;
+        --purple-deep: #3b1a8a;
+        --purple-glow: #9d5cf6;
+
+        --text-primary: #1a0a2e;
+        --text-secondary: #6b5c8f;
+        --text-muted: #9a8ab8;
+
+        --border-light: rgba(124,58,237,0.14);
+        --border-mid: rgba(124,58,237,0.30);
+
+        --success: #059669;
+    }
+
+    html,
+    body {
+        height: 100%;
+        font-family: 'Manrope', sans-serif;
+        background: var(--off-white);
+        overflow: hidden;
+    }
+
+    /* ───────────────── Background ───────────────── */
+
+    .bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+
+        background:
+            radial-gradient(
+                ellipse 70% 50% at 10% 20%,
+                rgba(124,58,237,0.06) 0%,
+                transparent 65%
+            ),
+            radial-gradient(
+                ellipse 55% 60% at 90% 80%,
+                rgba(124,58,237,0.04) 0%,
+                transparent 60%
+            ),
+            var(--off-white);
+    }
+
+    .bg::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+
+        background-image:
+            radial-gradient(
+                circle,
+                rgba(124,58,237,0.09) 1px,
+                transparent 1px
+            );
+
+        background-size: 36px 36px;
+        animation: drift 22s linear infinite;
+    }
+
+    @keyframes drift {
+        from { transform: translateY(0); }
+        to { transform: translateY(36px); }
+    }
+
+    /* ───────────────── Floating Orbs ───────────────── */
+
+    .orb {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(70px);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .orb-1 {
+        width: 360px;
+        height: 360px;
+        background:
+            radial-gradient(
+                circle,
+                rgba(124,58,237,0.12),
+                transparent 70%
+            );
+
+        top: -100px;
+        right: 60px;
+
+        animation: float1 9s ease-in-out infinite;
+    }
+
+    .orb-2 {
+        width: 260px;
+        height: 260px;
+        background:
+            radial-gradient(
+                circle,
+                rgba(157,92,246,0.10),
+                transparent 70%
+            );
+
+        bottom: -40px;
+        left: 30px;
+
+        animation: float2 11s ease-in-out infinite;
+    }
+
+    @keyframes float1 {
+        0%,100% { transform: translate(0,0); }
+        50% { transform: translate(-20px,25px); }
+    }
+
+    @keyframes float2 {
+        0%,100% { transform: translate(0,0); }
+        50% { transform: translate(20px,-20px); }
+    }
+
+    /* ───────────────── Layout ───────────────── */
+
+    .card-wrap {
+        position: relative;
+        z-index: 1;
+
+        min-height: 100vh;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 24px;
+    }
+
+    /* ───────────────── Card ───────────────── */
+
+    .card {
+        width: 100%;
+        max-width: 380px;
+
+        background: var(--white);
+
+        border: 1px solid var(--border-light);
+        border-radius: 22px;
+
+        padding: 40px 32px 36px;
+
+        text-align: center;
+
+        box-shadow:
+            0 1px 2px rgba(124,58,237,0.04),
+            0 8px 24px rgba(124,58,237,0.08),
+            0 32px 64px rgba(124,58,237,0.06);
+
+        animation: rise .6s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes rise {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ───────────────── Google Badge ───────────────── */
+
+    .google-badge {
+        width: 64px;
+        height: 64px;
+
+        margin: 0 auto 24px;
+
+        border-radius: 18px;
+
+        background: var(--purple-light);
+
+        border: 1px solid rgba(124,58,237,.15);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        box-shadow:
+            0 8px 24px rgba(124,58,237,.08);
+    }
+
+    .google-badge svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    /* ───────────────── Heading ───────────────── */
+
+    .card h1 {
+        font-family: 'Sora', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+
+        color: var(--text-primary);
+
+        letter-spacing: -.4px;
+
+        margin-bottom: 8px;
+    }
+
+    .card .subtitle {
+        font-size: 13px;
+        line-height: 1.6;
+
+        color: var(--text-secondary);
+
+        margin-bottom: 30px;
+    }
+
+    /* ───────────────── Permissions ───────────────── */
+
+    .permissions {
+        text-align: left;
+
+        background: var(--off-white);
+
+        border: 1px solid var(--border-light);
+        border-radius: 14px;
+
+        padding: 14px;
+
+        margin-bottom: 24px;
+    }
+
+    .permissions p {
+        font-size: 11px;
+        font-weight: 700;
+
+        letter-spacing: .8px;
+        text-transform: uppercase;
+
+        color: var(--text-muted);
+
+        margin-bottom: 12px;
+    }
+
+    .perm-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        padding: 8px 0;
+    }
+
+    .perm-item + .perm-item {
+        border-top: 1px solid rgba(124,58,237,.08);
+    }
+
+    .perm-dot {
+        width: 7px;
+        height: 7px;
+
+        border-radius: 50%;
+
+        background: var(--purple-mid);
+
+        flex-shrink: 0;
+    }
+
+    .perm-item span {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    /* ───────────────── Continue Button ───────────────── */
+
+    .btn-continue {
+        width: 100%;
+
+        padding: 13px;
+
+        border: none;
+        border-radius: 10px;
+
+        background:
+            linear-gradient(
+                135deg,
+                var(--purple-mid),
+                var(--purple-strong)
+            );
+
+        color: #fff;
+
+        font-family: 'Manrope', sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+
+        cursor: pointer;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+
+        box-shadow:
+            0 4px 16px rgba(124,58,237,.30);
+
+        transition:
+            transform .15s,
+            box-shadow .15s,
+            filter .15s;
+    }
+
+    .btn-continue:hover {
+        transform: translateY(-1px);
+
+        box-shadow:
+            0 8px 24px rgba(124,58,237,.38);
+
+        filter: brightness(1.06);
+    }
+
+    .btn-continue svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* ───────────────── Back Link ───────────────── */
+
+    .back-link {
+        display: inline-block;
+
+        margin-top: 16px;
+
+        color: var(--text-muted);
+
+        text-decoration: none;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        transition: color .2s;
+    }
+
+    .back-link:hover {
+        color: var(--purple-mid);
+    }
+
+    /* ───────────────── Security Note ───────────────── */
+
+    .security-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        margin-top: 22px;
+
+        color: var(--text-muted);
+        font-size: 11px;
+    }
+
+    .security-note svg {
+        opacity: .6;
+    }
+
+    /* ───────────────── Responsive ───────────────── */
+
+    @media (max-width: 480px) {
+
+        .card {
+            max-width: 100%;
+            padding: 30px 22px;
+        }
+
+        .card h1 {
+            font-size: 20px;
+        }
+
+        .google-badge {
+            width: 56px;
+            height: 56px;
+        }
+
+        .permissions {
+            padding: 12px;
+        }
+    }
+    </style>
+
+
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="card-wrap">
+    <div class="card">
+
+        <!-- Google logo -->
+        <div class="google-badge">
+            <svg width="32" height="32" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+            </svg>
+        </div>
+
+        <h1>Sign in with Google</h1>
+        <p class="subtitle">You'll be redirected to Google to complete authentication securely.</p>
+
+        <!-- Permissions breakdown -->
+        <div class="permissions">
+            <p>This app will access</p>
+            <div class="perm-item">
+                <div class="perm-dot"></div>
+                <span>Your name and profile picture</span>
+            </div>
+            <div class="perm-item">
+                <div class="perm-dot"></div>
+                <span>Your email address</span>
+            </div>
+        </div>
+
+        <!-- <form method="post">
+            {% csrf_token %}
+            <button class="btn-continue" type="submit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                </svg>
+                Continue with Google
+            </button>
+        </form> -->
+
+        <a href="/google-login/" style="text-decoration: none;">
+            <button class="btn-continue" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                </svg>
+                Continue with Google
+            </button>
+        </a>
+
+        <a href="/login/" class="back-link">← Back to login</a>
+
+        <div class="security-note">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Secured by OAuth 2.0
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

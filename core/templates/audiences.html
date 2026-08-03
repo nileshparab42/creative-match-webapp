@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recommendation Report — Creative Engine · LS Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+</head>
+<body>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Audiences</div>
+      <div class="page-sub">Model-generated segments · pushed to GA4 via Measurement Protocol · use report to create campaigns manually in GAds</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn" onclick="downloadCSV()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v10M4 7l4 4 4-4"/><path d="M1 13h14"/></svg>
+        Download report CSV
+      </button>
+    </div>
+  </div>
+
+  <div class="card section-full">
+    <div class="card-header">
+      <div class="card-title">Recommendation report</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="badge badge-success">GA4 synced</span>
+        <span class="badge badge-accent">Report ready · 2026-06-04</span>
+      </div>
+    </div>
+
+    <div style="padding:12px 20px;border-bottom:1px solid var(--border);background:var(--surface2);">
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
+        Use this report to create campaigns manually in Google Ads. For each segment: open GAds → New campaign → Demand Gen or Display → paste the creative asset ID → select the audience by name from Audience Manager → set budget and bidding → save as draft for review.
+      </div>
+    </div>
+
+  <div class="table-responsive">
+   <table class="creative-table" id="creativeTable">
+    <thead>
+        <tr>
+            <th>Segment Name</th>
+            <th>Audience Size</th>
+            <th>Ad Group</th>
+            <th>Ad ID</th>
+            <th>Campaign URL</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for audience in audiences %}
+        <tr>
+
+            <!-- Segment -->
+            <!-- Segment Name -->
+            <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="audience-dot"
+                        style="background:{{ audience.dot_color }};"></div>
+
+                    <span class="creative-name" style="font-size: 8px;">
+                        {{ audience.segment_name }}
+                    </span>
+                </div>
+            </td>
+
+            <!-- Audience Size -->
+            <td>
+                <span style="font-family:var(--mono);font-size:12px;">
+                    {{ audience.audience_size }}
+                </span>
+            </td>
+
+            <!-- Ad Group -->
+            <td>
+                <span class="creative-name" style="font-size: 8px;">
+                    {{ audience.ad_group }}
+                </span>
+            </td>
+
+            <!-- Ad ID -->
+            <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span class="creative-id">
+                        {{ audience.ad_id }}
+                    </span>
+
+                    <button class="btn btn-sm"
+                            onclick="copyText('{{ audience.ad_id }}', this)"
+                            style="padding:2px 6px;font-size:10px;">
+                        Copy
+                    </button>
+                </div>
+            </td>
+
+
+            <!-- Campaign URL -->
+            <td >
+                <div style="display:flex;align-items:center;gap:6px;">
+                    <span class="creative-id">
+                        {{ audience.campaign_link }}
+                    </span>
+                </div>
+            </td>
+
+            
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:11px;color:var(--text-muted);">Row 5 (score 0.54) included in report but not recommended for campaign — score below threshold. Campaign manager decides.</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="downloadCSV()">Download CSV</button>
+        <button class="btn btn-sm btn-primary" onclick="downloadJSON()">Download JSON</button>
+      </div>
+    </div>
+  </div>
+</main>
+<script>
+function getTableData() {
+    const table = document.getElementById("creativeTable");
+    const headers = [...table.querySelectorAll("thead th")].map(th =>
+        th.innerText.trim()
+    );
+
+    const rows = [];
+
+    table.querySelectorAll("tbody tr").forEach(tr => {
+        const row = {};
+        const cells = tr.querySelectorAll("td");
+
+        cells.forEach((td, index) => {
+            row[headers[index]] = td.innerText.replace(/\s+/g, " ").trim();
+        });
+
+        rows.push(row);
+    });
+
+    return rows;
+}
+
+function downloadCSV() {
+    const data = getTableData();
+
+    if (data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+
+    let csv = headers.join(",") + "\n";
+
+    data.forEach(row => {
+        csv += headers.map(header =>
+            `"${String(row[header]).replace(/"/g, '""')}"`
+        ).join(",") + "\n";
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "audiences.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function downloadJSON() {
+    const data = getTableData();
+
+    const blob = new Blob(
+        [JSON.stringify(data, null, 4)],
+        { type: "application/json" }
+    );
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "audiences.json";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+<script src="{% static 'scripts/sidebar.js' %}"></script>
+<script src="{% static 'scripts/shared.js' %}"></script>
+<script>
+  renderSidebar('audiences');
+</script>
+</body>
+</html>

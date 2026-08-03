@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Creative Match · LS Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+</head>
+<body>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Overview</div>
+      <div class="page-sub">Last run: today at 03:14 AM · daily scoring · report ready</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn" onclick="openCreativeModal()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1.5"/><path d="M5 7l2 2 4-3"/></svg>
+        Select creatives
+      </button>
+      <a href="run.html" class="btn btn-primary" style="text-decoration:none;">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="4,2 14,8 4,14"/></svg>
+        Manual run
+      </a>
+    </div>
+  </div>
+
+  <!-- SCHEDULE BANNER -->
+  <div class="schedule-banner">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="schedule-dot"></span>
+      <span>Automated schedule active</span>
+    </div>
+    <div class="schedule-items">
+      <span>Daily scoring: <strong>3:00 AM IST</strong></span>
+      <span>Monthly retrain: <strong>1st of month · 2:00 AM IST</strong></span>
+      <span style="color:var(--accent);">Next run: <strong style="color:var(--accent);">tomorrow 3:00 AM</strong></span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Audiences generated</div>
+      <div class="stat-value">6</div>
+      <div class="stat-delta delta-up">↑ 2 new this run</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total audience size</div>
+      <div class="stat-value">84.2k</div>
+      <div class="stat-delta delta-up">↑ 12% vs last run</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Creatives scored</div>
+      <div class="stat-value">18</div>
+      <div class="stat-delta delta-neutral">of 24 selected · 6 skipped (no data)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg. conversion score</div>
+      <div class="stat-value">0.73</div>
+      <div class="stat-delta delta-up">↑ 0.08 vs last run</div>
+    </div>
+  </div>
+
+  <div class="section-row">
+    <!-- CREATIVE SCORES TABLE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Creative scores</div>
+        <div class="card-meta">Run · 2026-06-04 03:14 AM</div>
+      </div>
+      <div class="tab-row">
+        <div class="tab active">All</div>
+        <div class="tab">Demand Gen</div>
+        <div class="tab">Display</div>
+        <div class="tab">No data</div>
+      </div>
+      <table class="creative-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Creative</th>
+            <th>Type</th>
+            <th>Conv. score</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="creative-thumb">IMG</div></td>
+            <td><div class="creative-name">Admission Deadline — Green</div><div class="creative-id">803653449091</div></td>
+            <td><span class="badge badge-accent">DMND</span></td>
+            <td><div class="score-bar-wrap"><div class="score-bar"><div class="score-fill high" style="width:91%"></div></div><div class="score-num">0.91</div></div></td>
+            <td><span class="badge badge-success">Pushed</span></td>
+          </tr>
+          <tr>
+            <td><div class="creative-thumb">IMG</div></td>
+            <td><div class="creative-name">Online M.Sc. — CTA Overlay</div><div class="creative-id">803653449073</div></td>
+            <td><span class="badge badge-accent">DMND</span></td>
+            <td><div class="score-bar-wrap"><div class="score-bar"><div class="score-fill high" style="width:84%"></div></div><div class="score-num">0.84</div></div></td>
+            <td><span class="badge badge-success">Pushed</span></td>
+          </tr>
+          <tr>
+            <td><div class="creative-thumb">IMG</div></td>
+            <td><div class="creative-name">Programme Banner — Blue</div><div class="creative-id">803653449037</div></td>
+            <td><span class="badge badge-accent">DMND</span></td>
+            <td><div class="score-bar-wrap"><div class="score-bar"><div class="score-fill mid" style="width:72%"></div></div><div class="score-num">0.72</div></div></td>
+            <td><span class="badge badge-success">Pushed</span></td>
+          </tr>
+          <tr>
+            <td><div class="creative-thumb">DSP</div></td>
+            <td><div class="creative-name">Responsive Display — Batch</div><div class="creative-id">803653448854</div></td>
+            <td><span class="badge badge-warning">DISP</span></td>
+            <td><div class="score-bar-wrap"><div class="score-bar"><div class="score-fill mid" style="width:65%"></div></div><div class="score-num">0.65</div></div></td>
+            <td><span class="badge badge-success">Pushed</span></td>
+          </tr>
+          <tr>
+            <td><div class="creative-thumb">IMG</div></td>
+            <td><div class="creative-name">Scholarship Offer — July</div><div class="creative-id">803537801273</div></td>
+            <td><span class="badge badge-accent">DMND</span></td>
+            <td><div class="score-bar-wrap"><div class="score-bar"><div class="score-fill low" style="width:38%"></div></div><div class="score-num">0.38</div></div></td>
+            <td><span class="badge badge-warning">Draft</span></td>
+          </tr>
+          <tr style="opacity:0.55;">
+            <td><div class="creative-thumb">NEW</div></td>
+            <td><div class="creative-name">Apply Now — Vertical</div><div class="creative-id">803537801483</div></td>
+            <td><span class="badge badge-accent">DMND</span></td>
+            <td><div class="score-bar-wrap"><div class="score-bar"><div class="score-fill" style="width:0%"></div></div><div class="score-num" style="color:var(--text-dim);">—</div></div></td>
+            <td><span class="badge badge-danger">No data · skipped</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Audiences</div>
+          <span class="badge badge-success">GA4 synced</span>
+        </div>
+        <div class="card-body" style="padding:10px 12px;">
+          <div class="audience-list">
+            <div class="audience-row selected">
+              <div class="audience-dot" style="background:#4f8ef7"></div>
+              <div class="audience-name">High intent — mobile</div>
+              <div class="audience-size">24.1k</div>
+              <div class="audience-score">0.91</div>
+            </div>
+            <div class="audience-row">
+              <div class="audience-dot" style="background:#3ecf8e"></div>
+              <div class="audience-name">Returners — desktop</div>
+              <div class="audience-size">18.7k</div>
+              <div class="audience-score">0.84</div>
+            </div>
+            <div class="audience-row">
+              <div class="audience-dot" style="background:#a78bfa"></div>
+              <div class="audience-name">New visitors — south</div>
+              <div class="audience-size">16.2k</div>
+              <div class="audience-score">0.77</div>
+            </div>
+            <div class="audience-row">
+              <div class="audience-dot" style="background:#f5a623"></div>
+              <div class="audience-name">Mid funnel — engaged</div>
+              <div class="audience-size">14.9k</div>
+              <div class="audience-score">0.71</div>
+            </div>
+            <div class="audience-row">
+              <div class="audience-dot" style="background:#f25c5c"></div>
+              <div class="audience-name">Low freq — weekday</div>
+              <div class="audience-size">10.3k</div>
+              <div class="audience-score">0.54</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Last run log</div>
+          <span class="badge badge-success">Completed</span>
+        </div>
+        <div class="card-body">
+          <div class="run-log">
+            <div class="log-line"><span class="log-time">03:10</span><span class="log-ok">✓</span><span>GA4 fetch — 84,210 sessions</span></div>
+            <div class="log-line"><span class="log-time">03:11</span><span class="log-ok">✓</span><span>GAds fetch — 18 creatives, 6,884 ad group ads</span></div>
+            <div class="log-line"><span class="log-time">03:12</span><span class="log-ok">✓</span><span>GCLID join — 72,941 matched rows</span></div>
+            <div class="log-line"><span class="log-time">03:12</span><span class="log-info">→</span><span>Gemini extraction — 18 assets</span></div>
+            <div class="log-line"><span class="log-time">03:13</span><span class="log-ok">✓</span><span>Feature extraction complete</span></div>
+            <div class="log-line"><span class="log-time">03:13</span><span class="log-ok">✓</span><span>Model scoring complete</span></div>
+            <div class="log-line"><span class="log-time">03:14</span><span class="log-ok">✓</span><span>GA4 audience push via MP — 5 segments</span></div>
+            <div class="log-line"><span class="log-time">03:14</span><span class="log-ok">✓</span><span>Recommendation report generated — saved to GCS</span></div>
+            <div class="log-line"><span class="log-time">03:14</span><span class="log-warn">!</span><span>6 creatives skipped — insufficient click data</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="{% static 'scripts/sidebar.js' %}"></script>
+<script src="{% static 'scripts/shared.js' %}"></script>
+<script>
+  renderSidebar('dashboard');
+  renderCreativeModal();
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creatives — Creative Engine · LS Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+</head>
+<body>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Creatives</div>
+      <div class="page-sub">All assets fetched from your Google Ads account</div>
+    </div>
+    <button class="btn">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v10M4 7l4 4 4-4"/><path d="M1 13h14"/></svg>
+      Refresh from GAds
+    </button>
+  </div>
+
+  <div class="card section-full">
+    <div class="card-header">
+      <div class="card-title">All assets</div>
+      <div class="card-meta">24 total · 18 selected · 6 no data · last synced 06:00 AM</div>
+    </div>
+    <table class="creative-table">
+      <thead>
+        <tr><th></th><th>Asset</th><th>Type</th><th>Images</th><th>In pipeline</th><th>Data status</th></tr>
+      </thead>
+      <tbody id="creativesTableBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<script src="{% static 'scripts/sidebar.js' %}"></script>
+<script src="{% static 'scripts/shared.js' %}"></script>
+<script>
+  renderSidebar('creatives');
+
+  // Build creatives table
+  document.getElementById('creativesTableBody').innerHTML = creatives.map(c => `
+    <tr>
+      <td><div class="creative-thumb">${c.type}</div></td>
+      <td><div class="creative-name">${c.name}</div><div class="creative-id">${c.id}</div></td>
+      <td><span class="badge ${c.type==='DISP' ? 'badge-warning' : 'badge-accent'}">${c.type}</span></td>
+      <td><span style="font-family:var(--mono);font-size:12px;">${c.images}</span></td>
+      <td><span class="badge ${c.selected && c.hasData ? 'badge-success' : 'badge-gray'}">${c.selected && c.hasData ? 'Selected' : 'Excluded'}</span></td>
+      <td><span class="badge ${c.hasData ? 'badge-success' : 'badge-danger'}">${c.hasData ? 'Ready' : 'No data — skipped'}</span></td>
+    </tr>
+  `).join('');
+</script>
+</body>
+</html>

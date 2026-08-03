@@ -1,0 +1,732 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Creative Match — Campaign Preview</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap');
+
+    :root {
+      --bg: #0a0b0e;
+      --surface: #111318;
+      --surface2: #181c24;
+      --border: rgba(255,255,255,0.07);
+      --border-active: rgba(255,255,255,0.18);
+      --accent: #4f8ef7;
+      --accent-dim: rgba(79,142,247,0.12);
+      --success: #3ecf8e;
+      --success-dim: rgba(62,207,142,0.1);
+      --warning: #f5a623;
+      --warning-dim: rgba(245,166,35,0.1);
+      --danger: #f25c5c;
+      --danger-dim: rgba(242,92,92,0.1);
+      --text: #e8eaf0;
+      --text-muted: #6b7280;
+      --text-dim: #3d4250;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Sora', sans-serif;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --sidebar-w: 220px;
+      --topbar-h: 64px;
+      --transition: all .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-family: var(--sans); color: var(--text); }
+    body { background: var(--bg); min-height: 100vh; display: flex; font-size: 14px; line-height: 1.6; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 0;
+      position: fixed; top: 0; left: 0; z-index: 100;
+    }
+
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 20px; height: var(--topbar-h);
+      border-bottom: 1px solid var(--border);
+      text-decoration: none; flex-shrink: 0;
+    }
+    .sidebar-logo-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, #4f8ef7, #a78bfa);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .sidebar-logo-icon svg { width: 15px; height: 15px; }
+    .sidebar-logo-text { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -.2px; }
+    .sidebar-logo-badge {
+      margin-left: auto; font-family: var(--mono); font-size: 9px; font-weight: 500;
+      color: var(--accent); background: var(--accent-dim);
+      border: 1px solid rgba(79,142,247,0.25); border-radius: 4px;
+      padding: 2px 6px; letter-spacing: .5px; text-transform: uppercase;
+    }
+
+    .sidebar-section { padding: 20px 12px 8px; flex-shrink: 0; }
+    .sidebar-section-label {
+      font-family: var(--mono); font-size: 10px; color: var(--text-dim);
+      letter-spacing: .12em; text-transform: uppercase;
+      padding: 0 8px; margin-bottom: 4px; margin-top: 8px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: var(--radius);
+      cursor: pointer; transition: var(--transition);
+      color: var(--text-muted); font-size: 13px; font-weight: 400;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+    .nav-item.active .nav-icon { opacity: 1; }
+    .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .6; }
+    .nav-badge {
+      margin-left: auto; font-family: var(--mono); font-size: 10px; font-weight: 500;
+      background: var(--surface2); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 1px 7px; min-width: 20px; text-align: center;
+    }
+    .nav-badge.green { background: var(--success-dim); color: var(--success); border-color: rgba(62,207,142,0.2); }
+
+    .sidebar-spacer { flex: 1; }
+    .sidebar-user {
+      padding: 16px 20px; border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer; transition: var(--transition);
+    }
+    .sidebar-user:hover { background: var(--surface2); }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #4f8ef7, #a78bfa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: white; flex-shrink: 0;
+    }
+    .sidebar-user-info { flex: 1; min-width: 0; }
+    .sidebar-user-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 11px; color: var(--text-muted); margin-top: 1px; font-family: var(--mono); }
+
+    /* ── MAIN ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    .topbar {
+      height: var(--topbar-h); background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 28px; gap: 16px;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; font-family: var(--mono); }
+    .breadcrumb-root { color: var(--text-muted); cursor: pointer; transition: var(--transition); }
+    .breadcrumb-root:hover { color: var(--text); }
+    .breadcrumb-sep { color: var(--text-dim); }
+    .breadcrumb-current { color: var(--text); font-weight: 500; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition); color: var(--text-muted); position: relative;
+    }
+    .icon-btn:hover { border-color: var(--border-active); color: var(--text); }
+    .icon-btn svg { width: 15px; height: 15px; }
+    .notif-dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 5px; height: 5px; background: var(--accent);
+      border-radius: 50%; border: 1.5px solid var(--surface);
+    }
+    .topbar-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #4f8ef7, #a78bfa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: white; cursor: pointer;
+      border: 1.5px solid transparent; transition: var(--transition);
+    }
+    .topbar-avatar:hover { border-color: var(--accent); }
+
+    /* ── PAGE ── */
+    .page-content {
+      padding: 32px 36px; flex: 1;
+      animation: fadeUp .35s ease both;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── CAMPAIGN NAME BAR ── */
+    .campaign-name-bar {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+    }
+    .campaign-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(79,142,247,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .campaign-label { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 3px; }
+    .campaign-name { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -.2px; }
+    .campaign-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .campaign-status { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .status-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 20px;
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+    }
+    .status-chip.draft { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(245,166,35,0.2); }
+    .status-chip-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+    /* ── MAIN GRID ── */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ── CAROUSEL ── */
+    .carousel-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .carousel-header {
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .carousel-title { font-size: 13px; font-weight: 500; color: var(--text); }
+    .carousel-counter {
+      font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 3px 10px;
+    }
+
+    .carousel-stage {
+      position: relative;
+      background: #07080b;
+      height: 420px;
+      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .carousel-slide {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .4s cubic-bezier(.4,0,.2,1), transform .4s cubic-bezier(.4,0,.2,1);
+      opacity: 0; transform: translateX(30px);
+    }
+    .carousel-slide.active { opacity: 1; transform: translateX(0); }
+    .carousel-slide.exit { opacity: 0; transform: translateX(-30px); }
+    .carousel-slide img { width: 100%; height: 100%; object-fit: contain; }
+
+    .slide-placeholder {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 12px;
+    }
+    .slide-placeholder-icon { font-size: 48px; opacity: .4; }
+    .slide-placeholder-label { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+
+    .carousel-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition);
+      backdrop-filter: blur(8px); z-index: 10; color: var(--text);
+    }
+    .carousel-btn:hover { background: var(--accent-dim); border-color: rgba(79,142,247,.4); color: var(--accent); }
+    .carousel-btn svg { width: 16px; height: 16px; }
+    .carousel-btn.prev { left: 14px; }
+    .carousel-btn.next { right: 14px; }
+
+    .carousel-dots {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 14px;
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border);
+      transition: var(--transition); cursor: pointer;
+    }
+    .dot.active { background: var(--accent); border-color: var(--accent); transform: scale(1.3); }
+
+    .carousel-thumbs { display: flex; gap: 10px; padding: 0 18px 18px; }
+    .thumb {
+      flex: 1; height: 60px; border-radius: var(--radius);
+      overflow: hidden; cursor: pointer;
+      border: 1px solid var(--border); transition: var(--transition);
+      background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(79,142,247,.2); }
+    .thumb:hover:not(.active) { border-color: var(--border-active); }
+    .thumb-placeholder { font-size: 18px; opacity: .4; }
+
+    /* ── AI PANEL ── */
+    .ai-panel { display: flex; flex-direction: column; gap: 16px; }
+
+    .audience-card-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .audience-card-top {
+      background: linear-gradient(135deg, #1a2744 0%, #0e1a36 100%);
+      border-bottom: 1px solid rgba(79,142,247,0.15);
+      padding: 20px 22px;
+      position: relative; overflow: hidden;
+    }
+    .audience-card-top::before {
+      content: ''; position: absolute;
+      width: 160px; height: 160px; border-radius: 50%;
+      background: rgba(79,142,247,.06);
+      top: -60px; right: -30px; pointer-events: none;
+    }
+    .audience-card-top::after {
+      content: ''; position: absolute;
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(79,142,247,.04);
+      bottom: -20px; left: 20px; pointer-events: none;
+    }
+    .aud-eyebrow { font-family: var(--mono); font-size: 10px; font-weight: 500; color: rgba(79,142,247,.6); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; position: relative; z-index: 1; }
+    .aud-name { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -.2px; margin-bottom: 6px; position: relative; z-index: 1; }
+    .aud-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; position: relative; z-index: 1; }
+    .aud-meta-row { display: flex; gap: 20px; margin-top: 16px; position: relative; z-index: 1; }
+    .aud-meta-val { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -.2px; font-family: var(--mono); }
+    .aud-meta-lbl { font-family: var(--mono); font-size: 9px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+
+    .ai-bullets-wrap { padding: 18px 20px; }
+    .ai-bullets-label {
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--accent);
+      letter-spacing: .1em; text-transform: uppercase; margin-bottom: 14px;
+    }
+    .ai-bullets-label svg { width: 12px; height: 12px; }
+
+    .ai-bullet {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .ai-bullet:last-child { border-bottom: none; padding-bottom: 0; }
+    .ai-bullet-icon {
+      width: 22px; height: 22px; border-radius: 6px;
+      background: var(--accent-dim); border: 1px solid rgba(79,142,247,.15);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .ai-bullet-icon svg { width: 11px; height: 11px; color: var(--accent); }
+    .ai-bullet-text { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .ai-bullet-text strong { color: var(--text); font-weight: 500; }
+
+    /* ── DEPLOY BUTTON ── */
+    .btn-deploy {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 13px 20px; margin-top: 4px;
+      background: var(--accent); border: none; border-radius: var(--radius);
+      color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: var(--transition); letter-spacing: -.1px;
+    }
+    .btn-deploy:hover { background: #6b9ef8; transform: translateY(-1px); }
+    .btn-deploy:active { transform: translateY(0); }
+    .btn-deploy svg { width: 15px; height: 15px; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; opacity: 0; pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    .modal-overlay.visible { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border-active);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px; max-width: 400px; width: 90%;
+      transform: scale(.94) translateY(12px);
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      text-align: center;
+    }
+    .modal-overlay.visible .modal { transform: scale(1) translateY(0); }
+    .modal-icon {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--success-dim); border: 1px solid rgba(62,207,142,.2);
+      margin: 0 auto 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-icon svg { width: 26px; height: 26px; color: var(--success); }
+    .modal-title { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -.2px; margin-bottom: 8px; }
+    .modal-sub { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+    .modal-close {
+      margin-top: 24px; padding: 10px 28px;
+      background: var(--accent); color: white; border: none; border-radius: var(--radius);
+      font-family: var(--sans); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: var(--transition);
+    }
+    .modal-close:hover { background: #6b9ef8; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 100px; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+      
+      <span class="sidebar-logo-text">CreativeMatch</span>
+      <span class="sidebar-logo-badge">Beta</span>
+    </a>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Platform</div>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Audiences
+        <span class="nav-badge">24</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+        Creatives
+        <span class="nav-badge green">8</span>
+      </a>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Analytics
+      </a>
+      <a href="#" class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+        Campaigns
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      {% comment %} <div class="sidebar-section-label">Workspace</div>
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        Model Settings
+      </a> {% endcomment %}
+      <a href="#" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Settings
+      </a>
+    </div>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-user">
+      <div class="avatar">AS</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Aryan Shah</div>
+        <div class="sidebar-user-role">Admin · Creative Match</div>
+      </div>
+      <svg style="width:14px;height:14px;color:var(--text-dim);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+      </svg>
+    </div>
+  </aside>
+
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <span class="breadcrumb-root">Campaigns</span>
+        <span class="breadcrumb-sep">&nbsp;/&nbsp;</span>
+        <span class="breadcrumb-current">preview-deploy</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="icon-btn">
+          <div class="notif-dot"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
+        <div class="icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+          </svg>
+        </div>
+        <div class="topbar-avatar">AS</div>
+      </div>
+    </header>
+
+
+    <!-- PAGE -->
+    <div class="page-content">
+
+      <!-- Campaign name bar -->
+      {% comment %} <div class="campaign-name-bar">
+        <div class="campaign-icon">🎯</div>
+        <div class="campaign-name-info">
+          <div class="campaign-label">{{ images.0 }}</div>
+          <div class="campaign-name">{{ campaign.name }}</div>
+          <div class="campaign-desc">Premium fashion &amp; lifestyle</div>
+        </div>
+        <div class="campaign-status">
+          <div class="status-chip draft">
+            <span class="status-chip-dot"></span>
+            Draft · Ready to Deploy
+          </div>
+        </div>
+      </div> {% endcomment %}
+
+      <!-- Main preview grid -->
+      <div class="preview-grid">
+
+        <!-- LEFT: Carousel -->
+        <div class="carousel-card">
+          <div class="carousel-header">
+            <span class="carousel-title">Creative Assets</span>
+            <span class="carousel-counter" id="slide-counter">1 / 2</span>
+          </div>
+
+          <div class="carousel-stage">
+            <!-- Slide 1 -->
+            <div class="carousel-slide active" id="slide-0">
+              <img src="{{ image_url }}" alt="Creative 1" onerror="this.style.display='none';this.parentElement.querySelector('.slide-placeholder').style.display='flex'"/>
+              {% comment %} <img src="https://tpc.googlesyndication.com/simgad/18445554146557222232" alt="Creative 1" onerror="this.style.display='none';this.parentElement.querySelector('.slide-placeholder').style.display='flex'"/> {% endcomment %}
+              <div class="slide-placehoslder" style="display:none">
+                <div class="slide-placeholder-icon">🖼️</div>
+                <div class="slide-placeholder-label">img1.png</div>
+              </div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="carousel-slide" id="slide-1">
+              {% comment %} <img src="{{ images.1 }}" alt="Creative 2" onerror="this.style.display='none';this.parentElement.querySelector('.slide-placeholder').style.display='flex'"/> {% endcomment %}
+              <img src="https://tpc.googlesyndication.com/simgad/18445554146557222232" alt="Creative 2" onerror="this.style.display='none';this.parentElement.querySelector('.slide-placeholder').style.display='flex'"/>
+              <div class="slide-placeholder" style="display:none">
+                <div class="slide-placeholder-icon">🖼️</div>
+                <div class="slide-placeholder-label">img2.png</div>
+              </div>
+            </div>
+
+            <!-- Nav arrows -->
+            <button class="carousel-btn prev" onclick="prevSlide()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="carousel-btn next" onclick="nextSlide()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <!-- Dots -->
+          <div class="carousel-dots">
+            <div class="dot active" onclick="goToSlide(0)"></div>
+            <div class="dot" onclick="goToSlide(1)"></div>
+          </div>
+
+          <!-- Thumbnails -->
+          {% comment %} <div class="carousel-thumbs">
+            <div class="thumb active" id="thumb-0" onclick="goToSlide(0)">
+              <img src="{{ images.0 }}" alt="Thumb 1" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-placeholder').style.display='flex'"/>
+              <div class="thumb-placeholder" style="display:none;width:100%;height:100%;align-items:center;justify-content:center">🖼️</div>
+            </div>
+            <div class="thumb" id="thumb-1" onclick="goToSlide(1)">
+              <img src="{{ images.1 }}" alt="Thumb 2" onerror="this.style.display='none';this.parentElement.querySelector('.thumb-placeholder').style.display='flex'"/>
+              <div class="thumb-placeholder" style="display:none;width:100%;height:100%;align-items:center;justify-content:center">🖼️</div>
+            </div>
+          </div> {% endcomment %}
+        </div>
+
+
+        <!-- RIGHT: AI Overview + Deploy -->
+        <div class="ai-panel">
+
+          <!-- Audience card -->
+          <div class="audience-card-info">
+            <div class="audience-card-top">
+              <div class="aud-eyebrow">Target Audience · {{ audience_id }}</div>
+              <div class="aud-name">{{ segment_name }}</div>
+              <div class="aud-desc">{{ creative_overview }}</div>
+              {% comment %} <div class="aud-meta-row">
+                <div class="aud-meta-item">
+                  <div class="aud-meta-val">91%</div>
+                  <div class="aud-meta-lbl">Match</div>
+                </div>
+              </div> {% endcomment %}
+            </div>
+
+            <div class="ai-bullets-wrap">
+              <div class="ai-bullets-label">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                  </svg>
+                  AI Audience Overview
+              </div>
+
+              {% for point in audience_characteristics %}
+              <div class="ai-bullet">
+                  <div class="ai-bullet-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <path d="M12 8v4l3 3"/>
+                      </svg>
+                  </div>
+
+                  <div class="ai-bullet-text">
+                      <strong>{{ point }}</strong>
+                  </div>
+              </div>
+              {% empty %}
+              <div class="ai-bullet">
+                  <div class="ai-bullet-text">
+                      No AI audience overview available.
+                  </div>
+              </div>
+              {% endfor %}
+          </div>
+
+            {% comment %} <!-- AI bullets -->
+            <div class="ai-bullets-wrap">
+              <div class="ai-bullets-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+                AI Audience Overview
+              </div>
+
+              <div class="ai-bullet">
+                <div class="ai-bullet-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <div class="ai-bullet-text">
+                  <strong>Behavior-based audience</strong> generated using GA4 engagement signals such as page views, session depth, and user interactions.
+                </div>
+              </div>
+
+              <div class="ai-bullet">
+                <div class="ai-bullet-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </div>
+                <div class="ai-bullet-text">
+                  <strong>Interest score assigned</strong> based on browsing patterns, content affinity, and historical engagement behavior.
+                </div>
+              </div>
+
+              <div class="ai-bullet">
+                <div class="ai-bullet-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 8v4l3 3"/>
+                  </svg>
+                </div>
+                <div class="ai-bullet-text">
+                  <strong>Peak activity periods identified</strong> from GA4 traffic patterns to help schedule campaign delivery.
+                </div>
+              </div>
+
+              <div class="ai-bullet">
+                <div class="ai-bullet-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                    <path d="M8 21h8M12 17v4"/>
+                  </svg>
+                </div>
+                <div class="ai-bullet-text">
+                  <strong>Creative preference detected</strong> by analyzing which content formats receive stronger engagement from similar users.
+                </div>
+              </div>
+
+              <div class="ai-bullet">
+                <div class="ai-bullet-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </div>
+                <div class="ai-bullet-text">
+                  <strong>High-intent users prioritized</strong> based on repeat visits, product exploration, and conversion-related actions.
+                </div>
+              </div> {% endcomment %}
+
+            </div>
+          </div>
+
+          <!-- Deploy button -->
+          <button class="btn-deploy" onclick="window.open('https://ads.google.com/aw/campaigns', '_blank')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            View in Google Ads
+          </button>
+
+        </div><!-- /ai-panel -->
+      </div><!-- /preview-grid -->
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+
+
+  <!-- SUCCESS MODAL -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div class="modal-title">Campaign Deployed!</div>
+      <div class="modal-sub">
+        <strong>High-Intent Urban Millennials — Q3 Push</strong> is now live across Meta and Google. You'll receive performance updates in your dashboard.
+      </div>
+      <button class="modal-close" onclick="closeModal()">Back to Dashboard</button>
+    </div>
+  </div>
+
+
+  <script src="{% static 'scripts/sidebar.js' %}"></script>
+<script src="{% static 'scripts/shared.js' %}"></script>
+  
+</body>
+</html>

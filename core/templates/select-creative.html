@@ -1,0 +1,91 @@
+{% load static %}
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap');
+:root{--bg:#0a0b0e;--surface:#111318;--surface2:#181c24;--border:rgba(255,255,255,0.07);--border-active:rgba(255,255,255,0.18);--accent:#4f8ef7;--accent-dim:rgba(79,142,247,0.12);--text:#e8eaf0;--text-muted:#6b7280;--text-dim:#3d4250;--mono:'DM Mono',monospace;--sans:'Sora',sans-serif;--radius:10px;--radius-lg:16px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;min-height:100vh;padding:32px 100px;}
+.page-title{font-size:20px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--text-muted);margin-bottom:28px;}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px;}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(4,1fr);}}
+@media(max-width:860px){.grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:620px){.grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:380px){.grid{grid-template-columns:1fr;}}
+
+input[type=checkbox]{display:none;}
+
+.card-label{display:block;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .18s,transform .15s;position:relative;}
+.card-label:hover{border-color:var(--border-active);transform:translateY(-2px);}
+
+input[type=checkbox]:checked + .card-label{border-color:var(--accent);background:rgba(79,142,247,0.06);}
+
+.check-badge{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;z-index:2;transition:all .18s;}
+input[type=checkbox]:checked + .card-label .check-badge{background:var(--accent);border-color:var(--accent);}
+
+.check-icon{width:10px;height:10px;opacity:0;transition:opacity .15s;}
+input[type=checkbox]:checked + .card-label .check-icon{opacity:1;}
+
+.card-img{width:100%;aspect-ratio:16/10;background:var(--surface2);overflow:hidden;}
+.card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.card-body{padding:10px 12px 12px;}
+.card-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;}
+.card-id{font-family:var(--mono);font-size:10px;color:var(--text-muted);}
+
+.footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding-top:20px;border-top:1px solid var(--border);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-family:var(--sans);font-size:13px;font-weight:400;cursor:pointer;transition:all .15s;text-decoration:none;}
+.btn:hover{border-color:var(--border-active);color:var(--text);}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500;}
+.btn-primary:hover{background:#6b9ef8;border-color:#6b9ef8;color:#fff;}
+</style>
+
+
+<form method="get" action="{% url 'run' %}">
+    {% csrf_token %}
+<div class="page-title">Select Creatives
+    <div class="footer">
+        <a href="#" class="btn">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+            Run Pipeline
+        </button>
+    </div>
+</div>
+<div class="page-sub">Click cards to select campaigns for your pipeline run.</div>
+
+
+    <div class="grid">
+        {% for creative in creative_data %}
+
+            <input
+                type="checkbox"
+                id="campaign_{{ creative.ad_id }}"
+                name="selected_campaigns"
+                value="{{ creative.ad_id }}"
+            >
+
+            <label class="card-label" for="campaign_{{ creative.ad_id }}">
+                <div class="check-badge">
+                    <svg class="check-icon" viewBox="0 0 10 10" fill="none">
+                        <path d="M2 5L4.2 7.5L8 3"
+                              stroke="white"
+                              stroke-width="1.5"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                </div>
+
+                <div class="card-img">
+                    <img src="{{ creative.primary_image }}" alt="{{ creative.name }}">
+                </div>
+
+                <div class="card-body">
+                    <div class="card-name">{{ creative.name }}</div>
+                    <div class="card-id">{{ creative.ad_id }}</div>
+                </div>
+            </label>
+
+        {% endfor %}
+    </div>
+
+    
+</form>

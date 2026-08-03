@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Creative Match · LS Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+</head>
+<body>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Overview</div>
+      <div class="page-sub">Last run: today at 03:14 AM · daily scoring · report ready</div>
+    </div>
+    <div class="topbar-actions">
+      <form action="/select-creatives/" method="get">
+          <button type="submit" class="btn">
+              Select creatives
+          </button>
+      </form>
+      <a href="/run" class="btn btn-primary" style="text-decoration:none;">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="4,2 14,8 4,14"/></svg>
+        Manual run
+      </a>
+    </div>
+  </div>
+
+  <!-- SCHEDULE BANNER -->
+  <div class="schedule-banner">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span class="schedule-dot"></span>
+      <span>Automated schedule active</span>
+    </div>
+    <div class="schedule-items">
+      <span>Daily scoring: <strong>3:00 AM IST</strong></span>
+      <span>Monthly retrain: <strong>1st of month · 2:00 AM IST</strong></span>
+      <span style="color:var(--accent);">Next run: <strong style="color:var(--accent);">tomorrow 3:00 AM</strong></span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Audiences generated</div>
+      <div class="stat-value">3</div>
+      {% comment %} <div class="stat-delta delta-up">↑ 2 new this run</div> {% endcomment %}
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total audience size</div>
+      <div class="stat-value">19.2k</div>
+      {% comment %} <div class="stat-delta delta-up">↑ 12% vs last run</div> {% endcomment %}
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Last Creatives scored</div>
+      <div class="stat-value">3</div>
+      {% comment %} <div class="stat-delta delta-neutral">of 24 selected · 6 skipped (no data)</div> {% endcomment %}
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg. conversion score</div>
+      <div class="stat-value">No Data</div>
+      {% comment %} <div class="stat-delta delta-up">↑ 0.08 vs last run</div> {% endcomment %}
+    </div>
+  </div>
+
+  <div class="section-row">
+    <!-- CREATIVE SCORES TABLE -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Audiences</div>
+        <div class="card-meta">Run · 2026-06-04 03:14 AM</div>
+      </div>
+      {% comment %} <div class="tab-row">
+        <div class="tab active">All</div>
+        <div class="tab">Demand Gen</div>
+        <div class="tab">Display</div>
+        <div class="tab">No data</div>
+      </div> {% endcomment %}
+      <table class="creative-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Audience</th>
+            {% comment %} <th>Type</th> {% endcomment %}
+            {% comment %} <th>Conv. score</th> {% endcomment %}
+            <th>Size</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for audience in audiences %}
+          {% if audience.image_url is not None %}
+          <tr onclick="window.location.href='/campaign?audience_id={{ audience.ad_id }}&image_url={{ audience.image_url | urlencode }}&segment_name={{ audience.segment_name | urlencode }}'"</tr>
+              <td>
+                  <div class="creative-thumb">
+                      <img src="{{ audience.image_url }}" alt="Creative">
+                  </div>
+              </td>
+
+              <td>
+                  <div class="creative-name"
+                      title="{{ audience.segment_name }}"
+                      style="max-width:350px;white-space:normal;word-break:break-word;line-height:1.4;">
+                      {{ audience.segment_name }}
+                  </div>
+                  <div class="creative-id">{{ audience.ad_id }}</div>
+              </td>
+              <td>
+                  <span class="badge badge-success">{{ audience.audience_size }}</span>
+              </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Campaigns</div>
+          {% comment %} <span class="badge badge-success">GA4 synced</span> {% endcomment %}
+        </div>
+        <div class="card-body" style="padding:10px 12px;">
+          <div class="audience-list">
+            {% for campaign in campaigns %}
+            <div class="audience-row">
+              <div class="audience-dot" style="background:#4f8ef7"></div>
+              <div class="audience-name">{{ campaign.name|slice:":50" }}...</div>
+              {% comment %} <div class="audience-size">{{ audience.search_size }}</div>
+              <div class="audience-score">{{ audience.display_size }}</div> {% endcomment %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Last run log</div>
+          <span class="badge badge-success">Completed</span>
+        </div>
+        <div class="card-body">
+          <div class="run-log">
+            <div class="log-line"><span class="log-time">03:10</span><span class="log-ok">✓</span><span>GA4 fetch — 84,210 sessions</span></div>
+            <div class="log-line"><span class="log-time">03:11</span><span class="log-ok">✓</span><span>GAds fetch — 18 creatives, 6,884 ad group ads</span></div>
+            <div class="log-line"><span class="log-time">03:12</span><span class="log-ok">✓</span><span>GCLID join — 72,941 matched rows</span></div>
+            <div class="log-line"><span class="log-time">03:12</span><span class="log-info">→</span><span>Gemini extraction — 18 assets</span></div>
+            <div class="log-line"><span class="log-time">03:13</span><span class="log-ok">✓</span><span>Feature extraction complete</span></div>
+            <div class="log-line"><span class="log-time">03:13</span><span class="log-ok">✓</span><span>Model scoring complete</span></div>
+            <div class="log-line"><span class="log-time">03:14</span><span class="log-ok">✓</span><span>GA4 audience push via MP — 5 segments</span></div>
+            <div class="log-line"><span class="log-time">03:14</span><span class="log-ok">✓</span><span>Recommendation report generated — saved to GCS</span></div>
+            <div class="log-line"><span class="log-time">03:14</span><span class="log-warn">!</span><span>6 creatives skipped — insufficient click data</span></div>
+          </div>
+        </div>
+      </div>
+    </div> 
+  </div>
+</main>
+
+{{ campaigns_json|json_script:"campaigns-data" }}
+<script src="{% static 'scripts/sidebar.js' %}"></script>
+<script src="{% static 'scripts/shared.js' %}"></script>
+<script>
+  renderSidebar('dashboard');
+  renderCreativeModal();
+</script>
+</body>
+</html>
