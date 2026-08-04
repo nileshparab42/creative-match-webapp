@@ -66,6 +66,17 @@ AD_GROUP_AD_ID_RE = re.compile(r"Ad Group:\s*(.*?)\s*&\s*AD ID:\s*(\d+)")
 # Google Ads helpers
 # ---------------------------------------------------------------------------
 
+def _build_flow(**kwargs):
+    """Build a Flow from GOOGLE_CLIENT_SECRET_FILE, whether it holds a file
+    path (local dev) or raw JSON content (Cloud Run, injected via Secret
+    Manager env var)."""
+    raw = CLIENT_SECRET_FILE.strip()
+    if raw.startswith("{"):
+        client_config = json.loads(raw)
+        return Flow.from_client_config(client_config, **kwargs)
+    return Flow.from_client_secrets_file(raw, **kwargs)
+
+
 def credentials_to_dict(creds):
     return {
         "token": creds.token,
@@ -550,11 +561,7 @@ def select_creative(request):
 
 
 def google_login(request):
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRET_FILE,
-        scopes=SCOPES,
-        redirect_uri=REDIRECT_URI,
-    )
+    flow = _build_flow(scopes=SCOPES, redirect_uri=REDIRECT_URI)
 
     authorization_url, state = flow.authorization_url(
         access_type="offline",
@@ -570,8 +577,7 @@ def google_login(request):
 
 
 def oauth2callback(request):
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRET_FILE,
+    flow = _build_flow(
         scopes=SCOPES,
         state=request.session.get("state"),
         redirect_uri=REDIRECT_URI,
