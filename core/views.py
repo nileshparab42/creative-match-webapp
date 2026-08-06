@@ -290,6 +290,14 @@ def test(request):
 
 
 def run(request):
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+                
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     campaigns = request.GET.getlist("selected_campaigns")
 
     credential = OAuthCredential.objects.get(user=request.user)
@@ -300,6 +308,14 @@ def run(request):
 
 
 def audiences(request):
+    if not request.user.is_authenticated:
+            return render(request, "login.html")
+                
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     creds_data = request.session.get("credentials")
     if not creds_data:
         return render(request, "audiences.html", {"audiences": []})
@@ -325,28 +341,98 @@ def audiences(request):
 
 
 def creatives(request):
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+                
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     return render(request, "creatives.html")
 
 
 def scores(request):
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+                
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     return render(request, "scores.html")
 
 
 def settings(request):
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+                
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     return render(request, "settings.html")
+
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request as GoogleAuthRequest
+
+def get_valid_credentials(request):
+    """
+    Returns a refreshed credentials dict, updating the session if the
+    access token was refreshed. Returns None if credentials are missing
+    or the refresh_token itself is invalid/revoked.
+    """
+    creds_data = request.session.get("credentials")
+    if not creds_data:
+        return None
+
+    creds = Credentials(
+        token=creds_data.get("token"),
+        refresh_token=creds_data.get("refresh_token"),
+        token_uri=creds_data.get("token_uri"),
+        client_id=creds_data.get("client_id"),
+        client_secret=creds_data.get("client_secret"),
+        scopes=creds_data.get("scopes"),
+    )
+
+    # Refresh if expired (or about to expire)
+    if not creds.valid:
+        if creds.expired and creds.refresh_token:
+            try:
+                creds.refresh(GoogleAuthRequest())
+            except Exception as e:
+                print("Token refresh failed:", e)
+                return None  # refresh_token revoked/invalid -> force real re-login
+        else:
+            return None
+
+    # Persist refreshed token back into session
+    creds_data["token"] = creds.token
+    creds_data["expiry"] = creds.expiry.isoformat() if creds.expiry else None
+    request.session["credentials"] = creds_data
+    request.session.modified = True
+
+    return creds_data
 
 
 def home(request):
-    creds_data = request.session.get("credentials")
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+
+    creds_data = get_valid_credentials(request)
     if not creds_data:
-        return render(request, "home.html", {"campaigns": [], "audiences": []})
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
 
     try:
         client = get_google_ads_client(creds_data)
         accounts = get_accessible_customer_ids(client)
 
         if not accounts:
-            return render(request, "home.html", {
+            return render(request, "login.html", {
                 "campaigns": [],
                 "audiences": [],
                 "error": "No Google Ads accounts found.",
@@ -396,7 +482,7 @@ def home(request):
 
     except Exception as e:
         print("Google Ads Error:", e)
-        return render(request, "home.html", {
+        return render(request, "login.html", {
             "campaigns": [],
             "audiences": [],
             "error": str(e),
@@ -409,10 +495,26 @@ def home(request):
 
 
 def dashboard(request):
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+    
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     return render(request, "dashboard.html")
 
 
 def campaign(request):
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+        
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     email = request.user.email
     audience_id = request.GET.get("audience_id")
     image_url = request.GET.get("image_url")
@@ -503,6 +605,14 @@ def run_train_script(request):
 
 
 def onboarding(request):
+    if not request.user.is_authenticated:
+        return render(request, "login.html")
+            
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     return render(request, "onboarding.html")
 
 
@@ -530,6 +640,14 @@ def save_onboarding(request):
 
 
 def select_creative(request):
+    if not request.user.is_authenticated:
+            return render(request, "login.html")
+                
+    creds_data = get_valid_credentials(request)
+    if not creds_data:
+        return render(request, "login.html", {
+            "error": "Your Google session has expired. Please reconnect.",
+        })
     email = request.user.email
 
     creative_data = []
@@ -630,6 +748,11 @@ def oauth2callback(request):
 
 
 def login_view(request):
+    if request.user.is_authenticated:
+        creds_data = get_valid_credentials(request)
+        if creds_data:
+            return redirect("home")
+
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
