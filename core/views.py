@@ -229,6 +229,35 @@ def fetch_audiences(ga_service, customer_id, ad_images=None, limit=5):
 # Views
 # ---------------------------------------------------------------------------
 
+# views.py
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from google.cloud import run_v2
+
+PROJECT_ID = "parul-university-website"
+REGION = "asia-south1"
+PREDICTION_JOB_NAME = "creativematch-predict"  # exact Job name from Cloud Run console
+
+def _trigger_job(job_name, request):
+    if not job_name:
+        print(f"Job not configured: {job_name!r}")
+        return redirect("/home")
+
+    try:
+        client = run_v2.JobsClient()
+        job_path = client.job_path(PROJECT_ID, REGION, job_name)
+
+        request_obj = run_v2.RunJobRequest(name=job_path)
+        operation = client.run_job(request=request_obj)
+
+        execution_name = operation.metadata.name if operation.metadata else None
+        print(f"Triggered job {job_name}, execution: {execution_name}")
+
+    except Exception as e:
+        print(f"Job trigger failed: {e}")
+
+    return redirect("/home")
+
 def gads(request):
     creds_data = request.session.get("credentials")
     if not creds_data:
@@ -596,12 +625,19 @@ def _run_script(script_path, request):
     return redirect("/home")
 
 
+# def run_prediction_script(request):
+#     return _run_script(PREDICTION_SCRIPT_PATH, request)
+
+
+# def run_train_script(request):
+#     return _run_script(TRAIN_SCRIPT_PATH, request)
+
 def run_prediction_script(request):
-    return _run_script(PREDICTION_SCRIPT_PATH, request)
+    return _trigger_job(PREDICTION_JOB_NAME, request)
 
 
 def run_train_script(request):
-    return _run_script(TRAIN_SCRIPT_PATH, request)
+    return _trigger_job(PREDICTION_JOB_NAME, request)
 
 
 def onboarding(request):
