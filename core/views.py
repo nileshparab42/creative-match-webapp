@@ -237,11 +237,13 @@ from google.cloud import run_v2
 PROJECT_ID = "parul-university-website"
 REGION = "asia-south1"
 PREDICTION_JOB_NAME = "creativematch-predict"  
-TRAIN_JOB_NAME = "creativematch-predict"
+TRAIN_JOB_NAME = "creativematch-fetch-train"
+
+from django.contrib import messages
 
 def _trigger_job(job_name, request):
     if not job_name:
-        print(f"Job not configured: {job_name!r}")
+        messages.error(request, f"Job not configured: {job_name!r}")
         return redirect("/home")
 
     try:
@@ -252,10 +254,10 @@ def _trigger_job(job_name, request):
         operation = client.run_job(request=request_obj)
 
         execution_name = operation.metadata.name if operation.metadata else None
-        print(f"Triggered job {job_name}, execution: {execution_name}")
+        messages.success(request, f"Job '{job_name}' triggered successfully.")
 
     except Exception as e:
-        print(f"Job trigger failed: {e}")
+        messages.error(request, f"Failed to trigger job '{job_name}': {e}")
 
     return redirect("/home")
 

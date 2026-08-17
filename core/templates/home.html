@@ -43,6 +43,17 @@
     </div>
   </div>
 
+  {% if messages %}
+  <div class="alert-stack">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">
+        <span>{{ message }}</span>
+        <span class="alert-close" onclick="this.parentElement.remove()">×</span>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-label">Audiences generated</div>

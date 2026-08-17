@@ -513,3 +513,21 @@ body {
 .stat-card:nth-child(2) { animation-delay: 0.06s; }
 .stat-card:nth-child(3) { animation-delay: 0.12s; }
 .stat-card:nth-child(4) { animation-delay: 0.18s; }
+
+
+.alert-stack { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+.alert {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-radius: var(--radius);
+  font-size: 13px; border: 1px solid transparent;
+  animation: fadeUp 0.25s ease both;
+}
+
+.alert-success { background: var(--success-dim); color: var(--success); border-color: rgba(62,207,142,0.25); }
+.alert-error   { background: var(--danger-dim);  color: var(--danger);  border-color: rgba(242,92,92,0.25); }
+.alert-warning { background: var(--warning-dim); color: var(--warning); border-color: rgba(245,166,35,0.25); }
+.alert-info    { background: var(--accent-dim);  color: var(--accent);  border-color: rgba(79,142,247,0.25); }
+
+.alert-close { cursor: pointer; opacity: 0.6; font-size: 15px; line-height: 1; margin-left: 12px; }
+.alert-close:hover { opacity: 1; }
