@@ -236,7 +236,8 @@ from google.cloud import run_v2
 
 PROJECT_ID = "parul-university-website"
 REGION = "asia-south1"
-PREDICTION_JOB_NAME = "creativematch-predict"  # exact Job name from Cloud Run console
+PREDICTION_JOB_NAME = "creativematch-predict"  
+TRAIN_JOB_NAME = "creativematch-predict"
 
 def _trigger_job(job_name, request):
     if not job_name:
@@ -637,7 +638,7 @@ def run_prediction_script(request):
 
 
 def run_train_script(request):
-    return _trigger_job(PREDICTION_JOB_NAME, request)
+    return _trigger_job(TRAIN_JOB_NAME, request)
 
 
 def onboarding(request):
