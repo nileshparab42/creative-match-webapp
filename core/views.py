@@ -489,7 +489,7 @@ def home(request):
         })
 
     return render(request, "home.html", {
-        "campaigns": campaigns,
+        "campaigns": [],
         "audiences": audience_list,
     })
 
