@@ -644,6 +644,9 @@ def home(request):
         # Audiences
         audience_list = fetch_audiences(ga_service, customer_id, ad_images=ad_images,limit=100)
 
+        for audience in audience_list:
+            print(f"Audience: {audience['segment_name']!r} image_url={audience.get('image_url')!r}")
+
     except Exception as e:
         print("Google Ads Error:", e)
         return render(request, "login.html", {
@@ -662,6 +665,8 @@ def home(request):
 
     total_audience_size = sum(a["audience_size_raw"] for a in audience_list)
     audiences_with_images = sum(1 for a in audience_list if a.get("image_url"))
+
+    campaigns = []
 
     return render(request, "home.html", {
         "campaigns": campaigns,
