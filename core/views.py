@@ -816,7 +816,7 @@ def _run_script(script_path, request):
 #     return _run_script(TRAIN_SCRIPT_PATH, request)
 
 def run_prediction_script(request):
-    return _trigger_job(PREDICTION_JOB_NAME, request)
+    return _trigger_job(PREDICTION_JOB_NAME, request, env_overrides=TRAIN_JOB_ENV_OVERRIDES)
 
 
 def run_train_script(request):

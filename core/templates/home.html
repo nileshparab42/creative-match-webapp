@@ -119,9 +119,13 @@
       <div class="stat-label">Campaigns synced</div>
       <div class="stat-value">{{ campaigns_count|default:"0" }}</div>
     </div>
-    <div class="stat-card">
+    {% comment %} <div class="stat-card">
       <div class="stat-label">Audiences with creatives</div>
       <div class="stat-value">{{ audiences_with_images|default:"0" }}</div>
+    </div> {% endcomment %}
+    <div class="stat-card">
+      <div class="stat-label">CTR</div>
+      <div class="stat-value">0</div>
     </div>
   </div>
 
