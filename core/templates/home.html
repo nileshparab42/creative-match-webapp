@@ -44,9 +44,9 @@
   <div class="schedule-banner">
     <div class="schedule-header">
       <div style="display:flex;align-items:center;gap:6px;">
-        <span class="schedule-dot {% if not daily_schedule and not monthly_schedule %}schedule-dot-none{% endif %}"></span>
+        {% comment %} <span class="schedule-dot {% if not daily_schedule and not retrain_schedule %}schedule-dot-none{% endif %}"></span> {% endcomment %}
         <span>
-          {% if daily_schedule or monthly_schedule %}Automated schedule active
+          {% if daily_schedule or retrain_schedule %}Automated schedule active
           {% else %}No Cloud Scheduler jobs found{% endif %}
         </span>
       </div>
@@ -76,17 +76,17 @@
       </div>
       <div class="schedule-job-row">
         <span class="schedule-job-name">
-          <span class="schedule-dot schedule-dot-{{ monthly_last_run.status|default:"none" }}"></span>
-          Monthly retrain · <strong>{{ monthly_schedule.human|default:"Not configured" }}</strong>
+          <span class="schedule-dot schedule-dot-{{ retrain_last_run.status|default:"none" }}"></span>
+          Retrain · <strong>{{ retrain_schedule.human|default:"Not configured" }}</strong>
         </span>
         <span class="schedule-job-status">
-          {% if monthly_last_run %}
+          {% if retrain_last_run %}
             Last run:
-            {% if monthly_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
-            {% elif monthly_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
-            {% elif monthly_last_run.status == "running" %}<strong class="log-warn">running</strong>
+            {% if retrain_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
+            {% elif retrain_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
+            {% elif retrain_last_run.status == "running" %}<strong class="log-warn">running</strong>
             {% else %}<strong>pending</strong>{% endif %}
-            {% if monthly_last_run.timestamp %}<span class="schedule-job-time">{{ monthly_last_run.timestamp|date:"M j, g:i A" }} IST</span>{% endif %}
+            {% if retrain_last_run.timestamp %}<span class="schedule-job-time">{{ retrain_last_run.timestamp|date:"M j, g:i A" }} IST</span>{% endif %}
           {% else %}
             <span class="schedule-job-time">No runs yet</span>
           {% endif %}
@@ -116,12 +116,12 @@
       <div class="stat-value">{{ total_audience_size|default:"No Data" }}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Last Creatives scored</div>
-      <div class="stat-value">No Data</div>
+      <div class="stat-label">Campaigns synced</div>
+      <div class="stat-value">{{ campaigns_count|default:"0" }}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Avg. conversion score</div>
-      <div class="stat-value">No Data</div>
+      <div class="stat-label">Audiences with creatives</div>
+      <div class="stat-value">{{ audiences_with_images|default:"0" }}</div>
     </div>
   </div>
 

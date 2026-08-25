@@ -306,10 +306,20 @@ def _describe_cron(cron_expr):
     hour_12 = int(hour) % 12 or 12
     time_str = f"{hour_12}:{int(minute):02d} {'AM' if int(hour) < 12 else 'PM'}"
 
+    weekday_names = {
+        "0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed",
+        "4": "Thu", "5": "Fri", "6": "Sat", "7": "Sun",
+        "sun": "Sun", "mon": "Mon", "tue": "Tue", "wed": "Wed",
+        "thu": "Thu", "fri": "Fri", "sat": "Sat",
+    }
+
     if day == "*" and month == "*" and weekday == "*":
         return f"Daily · {time_str} IST"
     if day.isdigit() and month == "*" and weekday == "*":
         return f"{day}{'st' if day == '1' else 'th'} of month · {time_str} IST"
+    if day == "*" and month == "*" and weekday != "*":
+        names = [weekday_names.get(w.lower(), w) for w in weekday.split(",")]
+        return f"Weekly · {'/'.join(names)} · {time_str} IST"
     return f"{cron_expr} · {time_str} IST"
 
 
@@ -645,22 +655,25 @@ def home(request):
     now_ist = django_timezone.now().astimezone(IST)
     scheduler_jobs = _list_scheduler_jobs()
     daily_schedule = _get_schedule_info(scheduler_jobs, PREDICTION_JOB_NAME)
-    monthly_schedule = _get_schedule_info(scheduler_jobs, TRAIN_JOB_NAME)
+    retrain_schedule = _get_schedule_info(scheduler_jobs, TRAIN_JOB_NAME)
 
-    next_runs = [s["next_run_ist"] for s in (daily_schedule, monthly_schedule) if s]
+    next_runs = [s["next_run_ist"] for s in (daily_schedule, retrain_schedule) if s]
     next_run_label = _describe_next_run(min(next_runs), now_ist) if next_runs else None
 
     total_audience_size = sum(a["audience_size_raw"] for a in audience_list)
+    audiences_with_images = sum(1 for a in audience_list if a.get("image_url"))
 
     return render(request, "home.html", {
         "campaigns": campaigns,
         "audiences": audience_list,
         "audiences_count": len(audience_list),
         "total_audience_size": _format_count(total_audience_size) if audience_list else None,
+        "campaigns_count": len(campaigns),
+        "audiences_with_images": audiences_with_images,
         "daily_last_run": _get_last_execution_status(PREDICTION_JOB_NAME),
-        "monthly_last_run": _get_last_execution_status(TRAIN_JOB_NAME),
+        "retrain_last_run": _get_last_execution_status(TRAIN_JOB_NAME),
         "daily_schedule": daily_schedule,
-        "monthly_schedule": monthly_schedule,
+        "retrain_schedule": retrain_schedule,
         "next_run_label": next_run_label,
     })
 
