@@ -28,14 +28,14 @@
       </div>
     </div>
     <div class="topbar-actions">
-      <form action="/select-creatives/" method="get">
+      {% comment %} <form action="/select-creatives/" method="get">
           <button type="submit" class="btn">
               Select creatives
           </button>
-      </form>
-      <a href="/run" class="btn btn-primary" style="text-decoration:none;">
+      </form> {% endcomment %}
+      <a href="/select-creatives/" class="btn btn-primary" style="text-decoration:none;">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="4,2 14,8 4,14"/></svg>
-        Manual run
+        Select creatives
       </a>
     </div>
   </div>

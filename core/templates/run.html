@@ -24,10 +24,10 @@
     </div>
   </div>
 
-  <div class="schedule-banner" style="margin-bottom:24px;">
+  {% comment %} <div class="schedule-banner" style="margin-bottom:24px;">
     <span>🕒 Next scheduled run: <strong>tomorrow · 3:00 AM IST</strong></span>
     <span style="color:var(--text-dim);font-size:11px;font-family:var(--mono);">Daily scoring · auto-triggers via Cloud Scheduler</span>
-  </div>
+  </div> {% endcomment %}
 
   <div class="section-row" style="grid-template-columns: 1fr 1fr;">
     <div class="card">
@@ -43,7 +43,7 @@
           <div class="form-hint" style="margin-top:8px;" id="modeHint">Scores existing users against selected creatives using the current trained model.</div>
         </div>
 
-        <div class="form-group" style="margin-bottom:0;">
+        {% comment %} <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Date range</label>
           <div style="display:flex;gap:8px;">
             <input class="form-input" type="date" value="2026-05-04" style="flex:1;">
@@ -60,7 +60,7 @@
             </div>
             <button class="btn btn-sm" onclick="openCreativeModal()">Change</button>
           </div>
-        </div>
+        </div> {% endcomment %}
 
         <div style="display:flex;flex-direction:column;gap:10px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);">
           <label class="form-label" style="margin-bottom:4px;">Pipeline steps</label>
