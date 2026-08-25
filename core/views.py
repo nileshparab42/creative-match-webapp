@@ -373,7 +373,17 @@ def _format_count(n):
     return str(n)
 
 
-def _trigger_job(job_name, request):
+# Equivalent to:
+#   gcloud run jobs execute creativematch-fetch-train --region asia-south1 \
+#     --update-env-vars CLIENT_NOTIF_EMAIL="parul_university_analytics@lsdigital.com",BQ_TABLE="parul-university-website.analytics_503926457"
+# Hardcoded for now.
+TRAIN_JOB_ENV_OVERRIDES = {
+    "CLIENT_NOTIF_EMAIL": "parul_university_analytics@lsdigital.com",
+    "BQ_TABLE": "parul-university-website.analytics_503926457",
+}
+
+
+def _trigger_job(job_name, request, env_overrides=None):
     if not job_name:
         messages.error(request, f"Job not configured: {job_name!r}")
         return redirect("/home")
@@ -382,7 +392,20 @@ def _trigger_job(job_name, request):
         client = run_v2.JobsClient()
         job_path = client.job_path(PROJECT_ID, REGION, job_name)
 
-        request_obj = run_v2.RunJobRequest(name=job_path)
+        overrides = None
+        if env_overrides:
+            overrides = run_v2.RunJobRequest.Overrides(
+                container_overrides=[
+                    run_v2.RunJobRequest.Overrides.ContainerOverride(
+                        env=[
+                            run_v2.EnvVar(name=key, value=value)
+                            for key, value in env_overrides.items()
+                        ]
+                    )
+                ]
+            )
+
+        request_obj = run_v2.RunJobRequest(name=job_path, overrides=overrides)
         operation = client.run_job(request=request_obj)
 
         execution_name = operation.metadata.name if operation.metadata else None
@@ -797,7 +820,7 @@ def run_prediction_script(request):
 
 
 def run_train_script(request):
-    return _trigger_job(TRAIN_JOB_NAME, request)
+    return _trigger_job(TRAIN_JOB_NAME, request, env_overrides=TRAIN_JOB_ENV_OVERRIDES)
 
 
 def onboarding(request):
