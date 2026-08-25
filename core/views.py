@@ -230,13 +230,14 @@ def fetch_audiences(ga_service, customer_id, ad_images=None, limit=5):
 # Views
 # ---------------------------------------------------------------------------
 # views.py
-from datetime import timedelta
+import datetime
 from zoneinfo import ZoneInfo
 
+from croniter import croniter
 from django.http import JsonResponse
 from django.utils import timezone as django_timezone
 from django.views.decorators.http import require_POST
-from google.cloud import run_v2
+from google.cloud import run_v2, scheduler_v1
 
 PROJECT_ID = "parul-university-website"
 REGION = "asia-south1"
@@ -281,25 +282,64 @@ def _get_last_execution_status(job_name):
         return None
 
 
-def _next_daily_run(hour=3, minute=0):
-    """Next occurrence of hour:minute IST, today or tomorrow."""
-    now_ist = django_timezone.now().astimezone(IST)
-    candidate = now_ist.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if candidate <= now_ist:
-        candidate += timedelta(days=1)
-    return candidate
+def _list_scheduler_jobs():
+    """All Cloud Scheduler jobs in PROJECT_ID/REGION, or [] on any failure."""
+    try:
+        client = scheduler_v1.CloudSchedulerClient()
+        parent = f"projects/{PROJECT_ID}/locations/{REGION}"
+        return list(client.list_jobs(parent=parent))
+    except Exception as e:
+        print(f"Failed to list Cloud Scheduler jobs: {e}")
+        return []
 
 
-def _next_monthly_run(day=1, hour=2, minute=0):
-    """Next occurrence of day/hour:minute IST, this month or next."""
-    now_ist = django_timezone.now().astimezone(IST)
-    candidate = now_ist.replace(day=day, hour=hour, minute=minute, second=0, microsecond=0)
-    if candidate <= now_ist:
-        if candidate.month == 12:
-            candidate = candidate.replace(year=candidate.year + 1, month=1)
-        else:
-            candidate = candidate.replace(month=candidate.month + 1)
-    return candidate
+def _describe_cron(cron_expr):
+    """Human label for common unix-cron shapes, else the raw expression."""
+    parts = cron_expr.split()
+    if len(parts) != 5:
+        return cron_expr
+    minute, hour, day, month, weekday = parts
+
+    if not (minute.isdigit() and hour.isdigit()):
+        return cron_expr
+
+    hour_12 = int(hour) % 12 or 12
+    time_str = f"{hour_12}:{int(minute):02d} {'AM' if int(hour) < 12 else 'PM'}"
+
+    if day == "*" and month == "*" and weekday == "*":
+        return f"Daily · {time_str} IST"
+    if day.isdigit() and month == "*" and weekday == "*":
+        return f"{day}{'st' if day == '1' else 'th'} of month · {time_str} IST"
+    return f"{cron_expr} · {time_str} IST"
+
+
+def _get_schedule_info(scheduler_jobs, cloud_run_job_name):
+    """Find the Cloud Scheduler job that triggers cloud_run_job_name and
+    describe its real schedule + next run, computed from its cron + time zone."""
+    match = None
+    for job in scheduler_jobs:
+        target_uri = job.http_target.uri if job.http_target else ""
+        if cloud_run_job_name in job.name or cloud_run_job_name in target_uri:
+            match = job
+            break
+
+    if not match:
+        return None
+
+    tz = ZoneInfo(match.time_zone) if match.time_zone else IST
+    now_in_tz = django_timezone.now().astimezone(tz)
+
+    try:
+        next_run = croniter(match.schedule, now_in_tz).get_next(datetime.datetime)
+    except Exception as e:
+        print(f"Failed to parse cron '{match.schedule}' for job '{match.name}': {e}")
+        return None
+
+    return {
+        "cron": match.schedule,
+        "human": _describe_cron(match.schedule),
+        "next_run_ist": next_run.astimezone(IST),
+    }
 
 
 def _describe_next_run(run_time, now_ist):
@@ -603,10 +643,12 @@ def home(request):
         })
 
     now_ist = django_timezone.now().astimezone(IST)
-    daily_next_run = _next_daily_run()
-    monthly_next_run = _next_monthly_run()
-    next_run = min(daily_next_run, monthly_next_run)
-    daily_last_run = _get_last_execution_status(PREDICTION_JOB_NAME)
+    scheduler_jobs = _list_scheduler_jobs()
+    daily_schedule = _get_schedule_info(scheduler_jobs, PREDICTION_JOB_NAME)
+    monthly_schedule = _get_schedule_info(scheduler_jobs, TRAIN_JOB_NAME)
+
+    next_runs = [s["next_run_ist"] for s in (daily_schedule, monthly_schedule) if s]
+    next_run_label = _describe_next_run(min(next_runs), now_ist) if next_runs else None
 
     total_audience_size = sum(a["audience_size_raw"] for a in audience_list)
 
@@ -615,9 +657,11 @@ def home(request):
         "audiences": audience_list,
         "audiences_count": len(audience_list),
         "total_audience_size": _format_count(total_audience_size) if audience_list else None,
-        "daily_last_run": daily_last_run,
+        "daily_last_run": _get_last_execution_status(PREDICTION_JOB_NAME),
         "monthly_last_run": _get_last_execution_status(TRAIN_JOB_NAME),
-        "next_run_label": _describe_next_run(next_run, now_ist),
+        "daily_schedule": daily_schedule,
+        "monthly_schedule": monthly_schedule,
+        "next_run_label": next_run_label,
     })
 
 

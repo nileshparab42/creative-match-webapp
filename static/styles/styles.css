@@ -181,15 +181,25 @@ body {
 
 /* SCHEDULE BANNER */
 .schedule-banner {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; flex-direction: column; gap: 10px;
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 10px 16px; margin-bottom: 20px;
   font-size: 12px; color: var(--text-muted);
 }
 
 .schedule-banner strong { color: var(--text); font-weight: 500; }
+.schedule-header { display: flex; align-items: center; justify-content: space-between; }
 .schedule-items { display: flex; gap: 24px; align-items: center; }
-.schedule-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block; margin-right: 6px; }
+.schedule-jobs { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); padding-top: 8px; }
+.schedule-job-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.schedule-job-name { display: flex; align-items: center; }
+.schedule-job-status { display: flex; align-items: center; gap: 6px; }
+.schedule-job-time { color: var(--text-dim); }
+.schedule-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block; margin-right: 6px; flex-shrink: 0; }
+.schedule-dot-success { background: var(--success); }
+.schedule-dot-failed { background: var(--danger); }
+.schedule-dot-running { background: var(--warning); }
+.schedule-dot-pending, .schedule-dot-none { background: var(--text-dim); }
 
 /* CREATIVE TABLE */
 .creative-table { width: 100%; border-collapse: collapse; }

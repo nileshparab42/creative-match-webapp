@@ -42,34 +42,56 @@
 
   <!-- SCHEDULE BANNER -->
   <div class="schedule-banner">
-    <div style="display:flex;align-items:center;gap:6px;">
-      <span class="schedule-dot"></span>
-      <span>Automated schedule active</span>
+    <div class="schedule-header">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="schedule-dot {% if not daily_schedule and not monthly_schedule %}schedule-dot-none{% endif %}"></span>
+        <span>
+          {% if daily_schedule or monthly_schedule %}Automated schedule active
+          {% else %}No Cloud Scheduler jobs found{% endif %}
+        </span>
+      </div>
+      <span style="color:var(--accent);">
+        Next run:
+        <strong style="color:var(--accent);">{{ next_run_label|default:"Not scheduled" }}</strong>
+      </span>
     </div>
-    <div class="schedule-items">
-      <span>
-        Daily scoring: <strong>3:00 AM IST</strong>
-        {% if daily_last_run %}
-          · last run
-          {% if daily_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
-          {% elif daily_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
-          {% elif daily_last_run.status == "running" %}<strong class="log-warn">running</strong>
-          {% else %}<strong>pending</strong>{% endif %}
-          {% if daily_last_run.timestamp %}({{ daily_last_run.timestamp|date:"M j, g:i A" }} IST){% endif %}
-        {% endif %}
-      </span>
-      <span>
-        Monthly retrain: <strong>1st of month · 2:00 AM IST</strong>
-        {% if monthly_last_run %}
-          · last run
-          {% if monthly_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
-          {% elif monthly_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
-          {% elif monthly_last_run.status == "running" %}<strong class="log-warn">running</strong>
-          {% else %}<strong>pending</strong>{% endif %}
-          {% if monthly_last_run.timestamp %}({{ monthly_last_run.timestamp|date:"M j, g:i A" }} IST){% endif %}
-        {% endif %}
-      </span>
-      <span style="color:var(--accent);">Next run: <strong style="color:var(--accent);">{{ next_run_label }}</strong></span>
+    <div class="schedule-jobs">
+      <div class="schedule-job-row">
+        <span class="schedule-job-name">
+          <span class="schedule-dot schedule-dot-{{ daily_last_run.status|default:"none" }}"></span>
+          Daily scoring · <strong>{{ daily_schedule.human|default:"Not configured" }}</strong>
+        </span>
+        <span class="schedule-job-status">
+          {% if daily_last_run %}
+            Last run:
+            {% if daily_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
+            {% elif daily_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
+            {% elif daily_last_run.status == "running" %}<strong class="log-warn">running</strong>
+            {% else %}<strong>pending</strong>{% endif %}
+            {% if daily_last_run.timestamp %}<span class="schedule-job-time">{{ daily_last_run.timestamp|date:"M j, g:i A" }} IST</span>{% endif %}
+          {% else %}
+            <span class="schedule-job-time">No runs yet</span>
+          {% endif %}
+        </span>
+      </div>
+      <div class="schedule-job-row">
+        <span class="schedule-job-name">
+          <span class="schedule-dot schedule-dot-{{ monthly_last_run.status|default:"none" }}"></span>
+          Monthly retrain · <strong>{{ monthly_schedule.human|default:"Not configured" }}</strong>
+        </span>
+        <span class="schedule-job-status">
+          {% if monthly_last_run %}
+            Last run:
+            {% if monthly_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
+            {% elif monthly_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
+            {% elif monthly_last_run.status == "running" %}<strong class="log-warn">running</strong>
+            {% else %}<strong>pending</strong>{% endif %}
+            {% if monthly_last_run.timestamp %}<span class="schedule-job-time">{{ monthly_last_run.timestamp|date:"M j, g:i A" }} IST</span>{% endif %}
+          {% else %}
+            <span class="schedule-job-time">No runs yet</span>
+          {% endif %}
+        </span>
+      </div>
     </div>
   </div>
 
