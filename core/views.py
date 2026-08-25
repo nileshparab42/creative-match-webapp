@@ -228,18 +228,89 @@ def fetch_audiences(ga_service, customer_id, ad_images=None, limit=5):
 # ---------------------------------------------------------------------------
 # Views
 # ---------------------------------------------------------------------------
-
 # views.py
+from datetime import timedelta
+from zoneinfo import ZoneInfo
+
 from django.http import JsonResponse
+from django.utils import timezone as django_timezone
 from django.views.decorators.http import require_POST
 from google.cloud import run_v2
 
 PROJECT_ID = "parul-university-website"
 REGION = "asia-south1"
-PREDICTION_JOB_NAME = "creativematch-predict"  
+PREDICTION_JOB_NAME = "creativematch-predict"
 TRAIN_JOB_NAME = "creativematch-fetch-train"
 
+IST = ZoneInfo("Asia/Kolkata")
+
 from django.contrib import messages
+
+def _get_last_execution_status(job_name):
+    """Latest Cloud Run Jobs execution for job_name: status + when it ran, in IST."""
+    if not job_name:
+        return None
+
+    try:
+        client = run_v2.ExecutionsClient()
+        parent = client.job_path(PROJECT_ID, REGION, job_name)
+        executions = list(client.list_executions(parent=parent))
+        if not executions:
+            return None
+
+        latest = max(executions, key=lambda e: e.create_time)
+
+        if latest.succeeded_count > 0:
+            status = "success"
+        elif latest.failed_count > 0:
+            status = "failed"
+        elif latest.running_count > 0:
+            status = "running"
+        else:
+            status = "pending"
+
+        timestamp = latest.completion_time or latest.start_time or latest.create_time
+        return {
+            "status": status,
+            "timestamp": timestamp.astimezone(IST) if timestamp else None,
+        }
+    except Exception as e:
+        print(f"Failed to fetch last execution for job '{job_name}': {e}")
+        return None
+
+
+def _next_daily_run(hour=3, minute=0):
+    """Next occurrence of hour:minute IST, today or tomorrow."""
+    now_ist = django_timezone.now().astimezone(IST)
+    candidate = now_ist.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if candidate <= now_ist:
+        candidate += timedelta(days=1)
+    return candidate
+
+
+def _next_monthly_run(day=1, hour=2, minute=0):
+    """Next occurrence of day/hour:minute IST, this month or next."""
+    now_ist = django_timezone.now().astimezone(IST)
+    candidate = now_ist.replace(day=day, hour=hour, minute=minute, second=0, microsecond=0)
+    if candidate <= now_ist:
+        if candidate.month == 12:
+            candidate = candidate.replace(year=candidate.year + 1, month=1)
+        else:
+            candidate = candidate.replace(month=candidate.month + 1)
+    return candidate
+
+
+def _describe_next_run(run_time, now_ist):
+    """Human label like 'today 3:00 AM' / 'tomorrow 3:00 AM' / 'Sep 1, 2:00 AM'."""
+    hour_12 = run_time.hour % 12 or 12
+    time_str = f"{hour_12}:{run_time.minute:02d} {'AM' if run_time.hour < 12 else 'PM'}"
+    days_ahead = (run_time.date() - now_ist.date()).days
+    if days_ahead == 0:
+        return f"today {time_str}"
+    if days_ahead == 1:
+        return f"tomorrow {time_str}"
+    return f"{run_time.strftime('%b')} {run_time.day}, {time_str}"
+
 
 def _trigger_job(job_name, request):
     if not job_name:
@@ -520,9 +591,17 @@ def home(request):
             "error": str(e),
         })
 
+    now_ist = django_timezone.now().astimezone(IST)
+    daily_next_run = _next_daily_run()
+    monthly_next_run = _next_monthly_run()
+    next_run = min(daily_next_run, monthly_next_run)
+
     return render(request, "home.html", {
         "campaigns": [],
         "audiences": audience_list,
+        "daily_last_run": _get_last_execution_status(PREDICTION_JOB_NAME),
+        "monthly_last_run": _get_last_execution_status(TRAIN_JOB_NAME),
+        "next_run_label": _describe_next_run(next_run, now_ist),
     })
 
 

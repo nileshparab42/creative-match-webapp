@@ -15,7 +15,17 @@
   <div class="topbar">
     <div>
       <div class="page-title">Overview</div>
-      <div class="page-sub">Last run: today at 03:14 AM · daily scoring · report ready</div>
+      <div class="page-sub">
+        {% if daily_last_run and daily_last_run.timestamp %}
+          Last run: {{ daily_last_run.timestamp|date:"g:i A" }} IST · daily scoring ·
+          {% if daily_last_run.status == "success" %}report ready
+          {% elif daily_last_run.status == "failed" %}<span style="color:var(--danger);">failed</span>
+          {% elif daily_last_run.status == "running" %}<span style="color:var(--warning);">running</span>
+          {% else %}pending{% endif %}
+        {% else %}
+          No scoring runs yet
+        {% endif %}
+      </div>
     </div>
     <div class="topbar-actions">
       <form action="/select-creatives/" method="get">
@@ -37,9 +47,29 @@
       <span>Automated schedule active</span>
     </div>
     <div class="schedule-items">
-      <span>Daily scoring: <strong>3:00 AM IST</strong></span>
-      <span>Monthly retrain: <strong>1st of month · 2:00 AM IST</strong></span>
-      <span style="color:var(--accent);">Next run: <strong style="color:var(--accent);">tomorrow 3:00 AM</strong></span>
+      <span>
+        Daily scoring: <strong>3:00 AM IST</strong>
+        {% if daily_last_run %}
+          · last run
+          {% if daily_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
+          {% elif daily_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
+          {% elif daily_last_run.status == "running" %}<strong class="log-warn">running</strong>
+          {% else %}<strong>pending</strong>{% endif %}
+          {% if daily_last_run.timestamp %}({{ daily_last_run.timestamp|date:"M j, g:i A" }} IST){% endif %}
+        {% endif %}
+      </span>
+      <span>
+        Monthly retrain: <strong>1st of month · 2:00 AM IST</strong>
+        {% if monthly_last_run %}
+          · last run
+          {% if monthly_last_run.status == "success" %}<strong class="log-ok">succeeded</strong>
+          {% elif monthly_last_run.status == "failed" %}<strong style="color:var(--danger);">failed</strong>
+          {% elif monthly_last_run.status == "running" %}<strong class="log-warn">running</strong>
+          {% else %}<strong>pending</strong>{% endif %}
+          {% if monthly_last_run.timestamp %}({{ monthly_last_run.timestamp|date:"M j, g:i A" }} IST){% endif %}
+        {% endif %}
+      </span>
+      <span style="color:var(--accent);">Next run: <strong style="color:var(--accent);">{{ next_run_label }}</strong></span>
     </div>
   </div>
 
