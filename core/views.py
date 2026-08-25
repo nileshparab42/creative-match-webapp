@@ -211,6 +211,7 @@ def fetch_audiences(ga_service, customer_id, ad_images=None, limit=5):
             "segment_name": row.user_list.name,
             "dot_color": AUDIENCE_COLORS[i % len(AUDIENCE_COLORS)],
             "audience_size": f"{row.user_list.size_for_display:,}",
+            "audience_size_raw": row.user_list.size_for_display,
             "ad_group": ad_group,
             "ad_id": ad_id,
             "campaign_type": row.user_list.type.name.replace("_", " ").title(),
@@ -273,6 +274,7 @@ def _get_last_execution_status(job_name):
         return {
             "status": status,
             "timestamp": timestamp.astimezone(IST) if timestamp else None,
+            "log_uri": latest.log_uri or None,
         }
     except Exception as e:
         print(f"Failed to fetch last execution for job '{job_name}': {e}")
@@ -310,6 +312,15 @@ def _describe_next_run(run_time, now_ist):
     if days_ahead == 1:
         return f"tomorrow {time_str}"
     return f"{run_time.strftime('%b')} {run_time.day}, {time_str}"
+
+
+def _format_count(n):
+    """1234 -> '1.2k', 999 -> '999'."""
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M"
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}k"
+    return str(n)
 
 
 def _trigger_job(job_name, request):
@@ -595,11 +606,16 @@ def home(request):
     daily_next_run = _next_daily_run()
     monthly_next_run = _next_monthly_run()
     next_run = min(daily_next_run, monthly_next_run)
+    daily_last_run = _get_last_execution_status(PREDICTION_JOB_NAME)
+
+    total_audience_size = sum(a["audience_size_raw"] for a in audience_list)
 
     return render(request, "home.html", {
-        "campaigns": [],
+        "campaigns": campaigns,
         "audiences": audience_list,
-        "daily_last_run": _get_last_execution_status(PREDICTION_JOB_NAME),
+        "audiences_count": len(audience_list),
+        "total_audience_size": _format_count(total_audience_size) if audience_list else None,
+        "daily_last_run": daily_last_run,
         "monthly_last_run": _get_last_execution_status(TRAIN_JOB_NAME),
         "next_run_label": _describe_next_run(next_run, now_ist),
     })

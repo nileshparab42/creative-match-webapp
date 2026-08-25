@@ -87,23 +87,19 @@
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-label">Audiences generated</div>
-      <div class="stat-value">3</div>
-      {% comment %} <div class="stat-delta delta-up">↑ 2 new this run</div> {% endcomment %}
+      <div class="stat-value">{{ audiences_count|default:"0" }}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Total audience size</div>
-      <div class="stat-value">19.2k</div>
-      {% comment %} <div class="stat-delta delta-up">↑ 12% vs last run</div> {% endcomment %}
+      <div class="stat-value">{{ total_audience_size|default:"No Data" }}</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Last Creatives scored</div>
-      <div class="stat-value">3</div>
-      {% comment %} <div class="stat-delta delta-neutral">of 24 selected · 6 skipped (no data)</div> {% endcomment %}
+      <div class="stat-value">No Data</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Avg. conversion score</div>
       <div class="stat-value">No Data</div>
-      {% comment %} <div class="stat-delta delta-up">↑ 0.08 vs last run</div> {% endcomment %}
     </div>
   </div>
 
@@ -112,7 +108,13 @@
     <div class="card">
       <div class="card-header">
         <div class="card-title">Audiences</div>
-        <div class="card-meta">Run · 2026-06-04 03:14 AM</div>
+        <div class="card-meta">
+          {% if daily_last_run and daily_last_run.timestamp %}
+            Run · {{ daily_last_run.timestamp|date:"Y-m-d g:i A" }}
+          {% else %}
+            No run data yet
+          {% endif %}
+        </div>
       </div>
       {% comment %} <div class="tab-row">
         <div class="tab active">All</div>
@@ -153,6 +155,8 @@
               </td>
           </tr>
           {% endif %}
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--text-dim);padding:16px;">No audiences yet</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -171,9 +175,9 @@
             <div class="audience-row">
               <div class="audience-dot" style="background:#4f8ef7"></div>
               <div class="audience-name">{{ campaign.name|slice:":50" }}...</div>
-              {% comment %} <div class="audience-size">{{ audience.search_size }}</div>
-              <div class="audience-score">{{ audience.display_size }}</div> {% endcomment %}
             </div>
+            {% empty %}
+            <div style="color:var(--text-dim);padding:8px 4px;font-size:13px;">No campaigns found</div>
             {% endfor %}
           </div>
         </div>
@@ -182,23 +186,32 @@
       <div class="card">
         <div class="card-header">
           <div class="card-title">Last run log</div>
-          <span class="badge badge-success">Completed</span>
+          {% if daily_last_run.status == "success" %}<span class="badge badge-success">Completed</span>
+          {% elif daily_last_run.status == "failed" %}<span class="badge badge-danger">Failed</span>
+          {% elif daily_last_run.status == "running" %}<span class="badge badge-warning">Running</span>
+          {% elif daily_last_run %}<span class="badge badge-warning">Pending</span>
+          {% else %}<span class="badge badge-warning">No data</span>{% endif %}
         </div>
         <div class="card-body">
           <div class="run-log">
-            <div class="log-line"><span class="log-time">03:10</span><span class="log-ok">✓</span><span>GA4 fetch — 84,210 sessions</span></div>
-            <div class="log-line"><span class="log-time">03:11</span><span class="log-ok">✓</span><span>GAds fetch — 18 creatives, 6,884 ad group ads</span></div>
-            <div class="log-line"><span class="log-time">03:12</span><span class="log-ok">✓</span><span>GCLID join — 72,941 matched rows</span></div>
-            <div class="log-line"><span class="log-time">03:12</span><span class="log-info">→</span><span>Gemini extraction — 18 assets</span></div>
-            <div class="log-line"><span class="log-time">03:13</span><span class="log-ok">✓</span><span>Feature extraction complete</span></div>
-            <div class="log-line"><span class="log-time">03:13</span><span class="log-ok">✓</span><span>Model scoring complete</span></div>
-            <div class="log-line"><span class="log-time">03:14</span><span class="log-ok">✓</span><span>GA4 audience push via MP — 5 segments</span></div>
-            <div class="log-line"><span class="log-time">03:14</span><span class="log-ok">✓</span><span>Recommendation report generated — saved to GCS</span></div>
-            <div class="log-line"><span class="log-time">03:14</span><span class="log-warn">!</span><span>6 creatives skipped — insufficient click data</span></div>
+            {% if daily_last_run %}
+              <div class="log-line">
+                <span class="log-time">{% if daily_last_run.timestamp %}{{ daily_last_run.timestamp|date:"M j, g:i A" }} IST{% endif %}</span>
+                {% if daily_last_run.status == "success" %}<span class="log-ok">✓</span><span>Daily scoring job completed successfully</span>
+                {% elif daily_last_run.status == "failed" %}<span style="color:var(--danger);">✗</span><span>Daily scoring job failed</span>
+                {% elif daily_last_run.status == "running" %}<span class="log-warn">→</span><span>Daily scoring job is running</span>
+                {% else %}<span class="log-warn">…</span><span>Daily scoring job pending</span>{% endif %}
+              </div>
+              {% if daily_last_run.log_uri %}
+              <div class="log-line"><a href="{{ daily_last_run.log_uri }}" target="_blank" rel="noopener" style="color:var(--accent);">View full logs in GCP Console →</a></div>
+              {% endif %}
+            {% else %}
+              <div class="log-line"><span style="color:var(--text-dim);">No run data available yet</span></div>
+            {% endif %}
           </div>
         </div>
       </div>
-    </div> 
+    </div>
   </div>
 </main>
 
