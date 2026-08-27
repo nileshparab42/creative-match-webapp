@@ -24,7 +24,7 @@ class OAuthCredential(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class OnboardingProfile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     ga4_property_id = models.CharField(max_length=50)
     gads_customer_id = models.CharField(max_length=50)
     ga4_measurement_id = models.CharField(max_length=50)

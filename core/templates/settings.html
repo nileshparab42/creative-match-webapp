@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{% static 'styles/styles.css' %}">
 </head>
 <body>
-
+{% csrf_token %}
 <main class="main">
   <div class="topbar">
     <div>
@@ -21,15 +21,15 @@
 
   <div class="section-row" style="grid-template-columns:1fr 1fr;">
     <div class="card">
-      <div class="card-header"><div class="card-title">Account IDs</div><button class="btn btn-sm">Save changes</button></div>
+      <div class="card-header"><div class="card-title">Account IDs</div></div>
       <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">GA4 Property ID</label>
-          <input class="form-input" value="123456789" id="s_ga4id">
+          <input class="form-input" value="{{ profile.ga4_property_id|default:'' }}" id="s_ga4id">
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">GAds Customer ID</label>
-          <input class="form-input" value="987-654-3210" id="s_gadsid">
+          <input class="form-input" value="{{ profile.gads_customer_id|default:'' }}" id="s_gadsid">
         </div>
         <div class="info-box" style="margin-bottom:0;">
           <strong>MCC / Login Customer ID</strong> is managed by LS Digital and cannot be changed here.
@@ -38,44 +38,45 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><div class="card-title">GA4 Measurement Protocol</div><button class="btn btn-sm">Save changes</button></div>
+      <div class="card-header"><div class="card-title">GA4 Measurement Protocol</div></div>
       <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Measurement ID</label>
-          <input class="form-input" value="G-XXXXXXXXXX" id="s_measurementid">
+          <input class="form-input" value="{{ profile.ga4_measurement_id|default:'' }}" id="s_measurementid">
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">MP API Secret</label>
-          <input class="form-input" type="password" value="••••••••••••" id="s_mpsecret">
-          <div class="form-hint">Stored securely in GCS · not visible after saving</div>
+          <input class="form-input" type="password" value="{% if profile.mp_api_secret %}••••••••••••{% endif %}" placeholder="Paste to update" id="s_mpsecret">
+          <div class="form-hint">Stored securely · leave unchanged to keep the existing secret</div>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><div class="card-title">Campaign defaults</div><button class="btn btn-sm">Save changes</button></div>
+      <div class="card-header"><div class="card-title">Business understanding</div></div>
       <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
-        <div class="form-row">
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Default daily budget (₹)</label>
-            <input class="form-input" value="null">
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Default geo target</label>
-            <input class="form-input" value="India">
-          </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Business (LOB)</label>
+          <select class="form-input" id="s_business" style="cursor:pointer;">
+            <option value="">Select Business</option>
+            <option value="education">Education</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="realestate">Real Estate</option>
+            <option value="retail">Retail</option>
+            <option value="finance">Finance</option>
+          </select>
+          <div class="form-hint">Select your line of business.</div>
         </div>
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Bidding strategy</label>
-          <select class="form-input" style="cursor:pointer;">
-            <option>Maximize conversions</option>
-            <option>Target CPA</option>
-            <option>Target ROAS</option>
+          <label class="form-label">Business Parameter</label>
+          <select class="form-input" id="s_businessParameter" style="cursor:pointer;" disabled>
+            <option value="">Select Business First</option>
           </select>
+          <div class="form-hint">Choose the relevant business parameter.</div>
         </div>
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label">Notification email</label>
-          <input class="form-input" value="team@lsdigital.com">
+          <input class="form-input" type="email" value="{{ profile.notif_email|default:'' }}" id="s_notifEmail">
         </div>
       </div>
     </div>
@@ -89,7 +90,7 @@
         </div>
         <div class="prereq-item">
           <div class="prereq-icon">🔑</div>
-          <div><div class="prereq-label">GA4 service account</div><div class="prereq-desc">ga4_sa.json — Data API read access · managed by LS Digital</div></div>
+          <div><div class="prereq-label">GA4 service account</div><div class="prereq-desc">Data API read access · managed by LS Digital</div></div>
         </div>
         <div class="prereq-item">
           <div class="prereq-icon">🔑</div>
@@ -102,12 +103,135 @@
       </div>
     </div>
   </div>
+
+  <div style="display:flex;align-items:center;gap:12px;margin-top:20px;">
+    <button class="btn btn-primary" id="btnSaveSettings" onclick="saveSettings()">Save changes</button>
+    <span id="settingsStatus" style="font-size:12px;color:var(--text-dim);"></span>
+  </div>
 </main>
 
 <script src="{% static 'scripts/sidebar.js' %}"></script>
 <script src="{% static 'scripts/shared.js' %}"></script>
+<script id="s_initialBusiness" type="application/json">{{ profile.business|default:""|escapejs }}</script>
+<script id="s_initialBusinessParameter" type="application/json">{{ profile.business_parameter|default:""|escapejs }}</script>
 <script>
   renderSidebar('settings');
+
+  const businessParameters = {
+    education: ["Programme Name", "Course Name", "Department", "Campus"],
+    healthcare: ["Hospital Name", "Doctor Name", "Specialization", "Department"],
+    realestate: ["Project Name", "Property Type", "Location", "Builder Name"],
+    retail: ["Product Category", "Brand", "Store Name", "Collection"],
+    finance: ["Loan Type", "Insurance Plan", "Investment Product", "Credit Card"],
+  };
+
+  const s_business = document.getElementById("s_business");
+  const s_businessParameter = document.getElementById("s_businessParameter");
+  const initBusiness = document.getElementById("s_initialBusiness").textContent.trim();
+  const initBusinessParameter = document.getElementById("s_initialBusinessParameter").textContent.trim();
+
+  function toCamelCase(value) {
+    return value
+      .split(/[\s_-]+/)
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join("");
+  }
+
+  function populateParameterOptions(business, selectedParamValue) {
+    s_businessParameter.innerHTML = '<option value="">Select Parameter</option>';
+    if (!business || !businessParameters[business]) {
+      s_businessParameter.disabled = true;
+      s_businessParameter.innerHTML = '<option value="">Select Business First</option>';
+      return;
+    }
+    s_businessParameter.disabled = false;
+    businessParameters[business].forEach(param => {
+      const option = document.createElement("option");
+      option.value = param.toLowerCase().replace(/\s+/g, "_");
+      option.textContent = param;
+      if (selectedParamValue && toCamelCase(option.value) === selectedParamValue) {
+        option.selected = true;
+      }
+      s_businessParameter.appendChild(option);
+    });
+  }
+
+  if (initBusiness) {
+    s_business.value = initBusiness;
+  }
+  populateParameterOptions(s_business.value, initBusinessParameter);
+
+  s_business.addEventListener("change", function () {
+    populateParameterOptions(this.value, "");
+  });
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function saveSettings() {
+    const btn = document.getElementById('btnSaveSettings');
+    const status = document.getElementById('settingsStatus');
+    const mpInput = document.getElementById('s_mpsecret');
+
+    const payload = {
+      ga4id: document.getElementById('s_ga4id').value,
+      gadsid: document.getElementById('s_gadsid').value,
+      measurementid: document.getElementById('s_measurementid').value,
+      business: s_business.value,
+      businessParameter: s_businessParameter.value,
+      notifEmail: document.getElementById('s_notifEmail').value,
+    };
+
+    if (mpInput.value && mpInput.value !== '••••••••••••') {
+      payload.mpsecret = mpInput.value;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    status.textContent = '';
+
+    fetch('/save-settings/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Save failed');
+        return res.json();
+      })
+      .then(() => {
+        status.textContent = 'Saved.';
+        status.style.color = 'var(--success, #2e9e5b)';
+        if (mpInput.value) {
+          mpInput.value = '••••••••••••';
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        status.textContent = 'Something went wrong saving your details. Please try again.';
+        status.style.color = 'var(--danger, #d64545)';
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Save changes';
+      });
+  }
 </script>
 </body>
 </html>

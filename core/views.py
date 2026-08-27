@@ -282,6 +282,40 @@ def _get_last_execution_status(job_name):
         return None
 
 
+def _get_recent_executions(job_name, limit=7):
+    """Latest `limit` Cloud Run Jobs executions for job_name, newest first."""
+    if not job_name:
+        return []
+
+    try:
+        client = run_v2.ExecutionsClient()
+        parent = client.job_path(PROJECT_ID, REGION, job_name)
+        executions = list(client.list_executions(parent=parent))
+        executions.sort(key=lambda e: e.create_time, reverse=True)
+
+        runs = []
+        for execution in executions[:limit]:
+            if execution.succeeded_count > 0:
+                status = "success"
+            elif execution.failed_count > 0:
+                status = "failed"
+            elif execution.running_count > 0:
+                status = "running"
+            else:
+                status = "pending"
+
+            timestamp = execution.completion_time or execution.start_time or execution.create_time
+            runs.append({
+                "status": status,
+                "timestamp": timestamp.astimezone(IST) if timestamp else None,
+                "log_uri": execution.log_uri or None,
+            })
+        return runs
+    except Exception as e:
+        print(f"Failed to fetch recent executions for job '{job_name}': {e}")
+        return []
+
+
 def _list_scheduler_jobs():
     """All Cloud Scheduler jobs in PROJECT_ID/REGION, or [] on any failure."""
     try:
@@ -554,13 +588,39 @@ def scores(request):
 def settings(request):
     if not request.user.is_authenticated:
         return render(request, "login.html")
-                
+
     creds_data = get_valid_credentials(request)
     if not creds_data:
         return render(request, "login.html", {
             "error": "Your Google session has expired. Please reconnect.",
         })
-    return render(request, "settings.html")
+
+    profile = OnboardingProfile.objects.filter(user=request.user).first()
+
+    return render(request, "settings.html", {"profile": profile})
+
+
+@require_POST
+def save_settings(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "Not authenticated"}, status=401)
+
+    data = json.loads(request.body)
+
+    profile, _ = OnboardingProfile.objects.get_or_create(user=request.user)
+
+    profile.ga4_property_id = data.get("ga4id", profile.ga4_property_id)
+    profile.gads_customer_id = data.get("gadsid", profile.gads_customer_id)
+    profile.ga4_measurement_id = data.get("measurementid", profile.ga4_measurement_id)
+    if data.get("mpsecret"):
+        profile.mp_api_secret = data.get("mpsecret")
+    profile.business = data.get("business", profile.business)
+    if data.get("businessParameter"):
+        profile.business_parameter = to_camel_case(data.get("businessParameter", ""))
+    profile.notif_email = data.get("notifEmail", profile.notif_email)
+    profile.save()
+
+    return JsonResponse({"status": "ok"})
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleAuthRequest
@@ -667,8 +727,8 @@ def home(request):
         # Audiences
         audience_list = fetch_audiences(ga_service, customer_id, ad_images=ad_images,limit=100)
 
-        for audience in audience_list:
-            print(f"Audience: {audience['segment_name']!r} image_url={audience.get('image_url')!r}")
+        # for audience in audience_list:
+        #     print(f"Audience: {audience['segment_name']!r} image_url={audience.get('image_url')!r}")
 
     except Exception as e:
         print("Google Ads Error:", e)
@@ -700,6 +760,7 @@ def home(request):
         "audiences_with_images": audiences_with_images,
         "daily_last_run": _get_last_execution_status(PREDICTION_JOB_NAME),
         "retrain_last_run": _get_last_execution_status(TRAIN_JOB_NAME),
+        "daily_recent_runs": _get_recent_executions(PREDICTION_JOB_NAME),
         "daily_schedule": daily_schedule,
         "retrain_schedule": retrain_schedule,
         "next_run_label": next_run_label,
@@ -844,8 +905,7 @@ def to_camel_case(text):
 def save_onboarding(request):
     data = json.loads(request.body)
 
-    OnboardingProfile.objects.create(
-        user=request.user if request.user.is_authenticated else None,
+    profile_fields = dict(
         ga4_property_id=data.get("ga4id"),
         gads_customer_id=data.get("gadsid"),
         ga4_measurement_id=data.get("measurementid"),
@@ -854,6 +914,13 @@ def save_onboarding(request):
         business_parameter=to_camel_case(data.get("businessParameter", "")),
         notif_email=data.get("notifEmail"),
     )
+
+    if request.user.is_authenticated:
+        OnboardingProfile.objects.update_or_create(
+            user=request.user, defaults=profile_fields,
+        )
+    else:
+        OnboardingProfile.objects.create(user=None, **profile_fields)
 
     return JsonResponse({"status": "ok"})
 

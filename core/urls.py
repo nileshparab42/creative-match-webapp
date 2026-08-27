@@ -18,6 +18,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('onboarding/', views.onboarding, name='onboarding'),
     path('save-onboarding/', views.save_onboarding, name='save_onboarding'),
+    path('save-settings/', views.save_settings, name='save_settings'),
     path('google-login/', views.google_login, name='google_login'),
     path('oauth2callback/', views.oauth2callback, name='oauth2callback'),
     # path("trigger-job/", views.trigger_creative_match_job, name="trigger_creative_match_job"),

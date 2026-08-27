@@ -220,17 +220,17 @@
         </div>
         <div class="card-body">
           <div class="run-log">
-            {% if daily_last_run %}
+            {% if daily_recent_runs %}
+              {% for run in daily_recent_runs %}
               <div class="log-line">
-                <span class="log-time">{% if daily_last_run.timestamp %}{{ daily_last_run.timestamp|date:"M j, g:i A" }} IST{% endif %}</span>
-                {% if daily_last_run.status == "success" %}<span class="log-ok">✓</span><span>Daily scoring job completed successfully</span>
-                {% elif daily_last_run.status == "failed" %}<span style="color:var(--danger);">✗</span><span>Daily scoring job failed</span>
-                {% elif daily_last_run.status == "running" %}<span class="log-warn">→</span><span>Daily scoring job is running</span>
+                <span class="log-time">{% if run.timestamp %}{{ run.timestamp|date:"M j, g:i A" }} IST{% endif %}</span>
+                {% if run.status == "success" %}<span class="log-ok">✓</span><span>Daily scoring job completed successfully</span>
+                {% elif run.status == "failed" %}<span style="color:var(--danger);">✗</span><span>Daily scoring job failed</span>
+                {% elif run.status == "running" %}<span class="log-warn">→</span><span>Daily scoring job is running</span>
                 {% else %}<span class="log-warn">…</span><span>Daily scoring job pending</span>{% endif %}
+                {% if run.log_uri %}<a href="{{ run.log_uri }}" target="_blank" rel="noopener" style="color:var(--accent);margin-left:auto;">Logs →</a>{% endif %}
               </div>
-              {% if daily_last_run.log_uri %}
-              <div class="log-line"><a href="{{ daily_last_run.log_uri }}" target="_blank" rel="noopener" style="color:var(--accent);">View full logs in GCP Console →</a></div>
-              {% endif %}
+              {% endfor %}
             {% else %}
               <div class="log-line"><span style="color:var(--text-dim);">No run data available yet</span></div>
             {% endif %}
