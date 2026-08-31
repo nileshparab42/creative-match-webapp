@@ -47,7 +47,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Bigquery Dataset Path</label>
-        <input class="form-input" placeholder="e.g. dummy.ds.events" id="gadsid">
+        <input class="form-input" placeholder="e.g. dummy.ds.events" id="bqpath">
         <div class="form-hint">Visible in your Bigquery Table Details</div>
       </div>
     </div>
@@ -214,7 +214,9 @@ function onboardNext() {
   if (currentStep === totalSteps) {
     const payload = {
       ga4id: document.getElementById('ga4id').value,
+      ga4accid: document.getElementById('ga4accid').value,
       gadsid: document.getElementById('gadsid').value,
+      bqpath: document.getElementById('bqpath').value,
       measurementid: document.getElementById('measurementid').value,
       mpsecret: document.getElementById('mpsecret').value,
       business: document.getElementById('business').value,

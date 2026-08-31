@@ -26,7 +26,9 @@ class OAuthCredential(models.Model):
 class OnboardingProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     ga4_property_id = models.CharField(max_length=50)
+    ga4_account_id = models.CharField(max_length=50, null=True, blank=True)
     gads_customer_id = models.CharField(max_length=50)
+    bigquery_dataset_path = models.CharField(max_length=255, null=True, blank=True)
     ga4_measurement_id = models.CharField(max_length=50)
     mp_api_secret = models.CharField(max_length=255)  # consider encrypting at rest
     business = models.CharField(max_length=50)

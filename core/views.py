@@ -410,11 +410,21 @@ def _format_count(n):
 # Equivalent to:
 #   gcloud run jobs execute creativematch-fetch-train --region asia-south1 \
 #     --update-env-vars CLIENT_NOTIF_EMAIL="parul_university_analytics@lsdigital.com",BQ_TABLE="parul-university-website.analytics_503926457"
-# Hardcoded for now.
-TRAIN_JOB_ENV_OVERRIDES = {
-    "CLIENT_NOTIF_EMAIL": "parul_university_analytics@lsdigital.com",
-    "BQ_TABLE": "parul-university-website.analytics_503926457",
-}
+def _get_train_job_env_overrides(request):
+    oauth_cred = OAuthCredential.objects.filter(user=request.user).first()
+    onboarding_profile = OnboardingProfile.objects.filter(user=request.user).first()
+
+    if not oauth_cred or not oauth_cred.email:
+        messages.error(request, "No notification email found for this account.")
+        return None
+    if not onboarding_profile or not onboarding_profile.bigquery_dataset_path:
+        messages.error(request, "No BigQuery dataset path found for this account.")
+        return None
+
+    return {
+        "CLIENT_NOTIF_EMAIL": oauth_cred.email,
+        "BQ_TABLE": onboarding_profile.bigquery_dataset_path,
+    }
 
 
 def _trigger_job(job_name, request, env_overrides=None):
@@ -877,11 +887,17 @@ def _run_script(script_path, request):
 #     return _run_script(TRAIN_SCRIPT_PATH, request)
 
 def run_prediction_script(request):
-    return _trigger_job(PREDICTION_JOB_NAME, request, env_overrides=TRAIN_JOB_ENV_OVERRIDES)
+    env_overrides = _get_train_job_env_overrides(request)
+    if env_overrides is None:
+        return redirect("/home")
+    return _trigger_job(PREDICTION_JOB_NAME, request, env_overrides=env_overrides)
 
 
 def run_train_script(request):
-    return _trigger_job(TRAIN_JOB_NAME, request, env_overrides=TRAIN_JOB_ENV_OVERRIDES)
+    env_overrides = _get_train_job_env_overrides(request)
+    if env_overrides is None:
+        return redirect("/home")
+    return _trigger_job(TRAIN_JOB_NAME, request, env_overrides=env_overrides)
 
 
 def onboarding(request):
@@ -893,6 +909,10 @@ def onboarding(request):
         return render(request, "login.html", {
             "error": "Your Google session has expired. Please reconnect.",
         })
+
+    if OnboardingProfile.objects.filter(user=request.user).exists():
+        return redirect("home")
+
     return render(request, "onboarding.html")
 
 
@@ -907,7 +927,9 @@ def save_onboarding(request):
 
     profile_fields = dict(
         ga4_property_id=data.get("ga4id"),
+        ga4_account_id=data.get("ga4accid"),
         gads_customer_id=data.get("gadsid"),
+        bigquery_dataset_path=data.get("bqpath"),
         ga4_measurement_id=data.get("measurementid"),
         mp_api_secret=data.get("mpsecret"),
         business=data.get("business"),
@@ -955,6 +977,9 @@ def select_creative(request):
             links = json.loads(links)
 
         for creative_id, value in links.items():
+            # print("creative_id:", creative_id)
+            print("ad_id:", value.get("ad_id"))
+            print("primary_image:", value.get("primary_image"))
             creative_data.append({
                 "creative_id": creative_id,
                 "ad_id": value.get("ad_id"),
@@ -1016,6 +1041,8 @@ def oauth2callback(request):
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
+    already_onboarded = OnboardingProfile.objects.filter(user=user).exists()
+
     OAuthCredential.objects.update_or_create(
         user=user,
         defaults={
@@ -1029,6 +1056,9 @@ def oauth2callback(request):
             "scopes": ",".join(credentials.scopes),
         },
     )
+
+    if already_onboarded:
+        return redirect("home")
 
     return redirect("onboarding")
 

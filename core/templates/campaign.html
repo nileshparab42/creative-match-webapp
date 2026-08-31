@@ -40,42 +40,28 @@
     html { font-family: var(--sans); color: var(--text); }
     body { background: var(--bg); min-height: 100vh; display: flex; font-size: 14px; line-height: 1.6; }
 
-    /* ── SIDEBAR ── */
+    /* ── SIDEBAR (shared across all pages, see static/styles/styles.css) ── */
     .sidebar {
       width: var(--sidebar-w);
       min-height: 100vh;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex; flex-direction: column;
-      padding: 0;
-      position: fixed; top: 0; left: 0; z-index: 100;
+      padding: 24px 0;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
     }
+    .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .logo-mark {
+      font-family: var(--mono); font-size: 11px; color: var(--accent);
+      letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px;
+    }
+    .logo-name { font-size: 15px; font-weight: 600; color: var(--text); }
 
-    .sidebar-logo {
-      display: flex; align-items: center; gap: 10px;
-      padding: 0 20px; height: var(--topbar-h);
-      border-bottom: 1px solid var(--border);
-      text-decoration: none; flex-shrink: 0;
-    }
-    .sidebar-logo-icon {
-      width: 30px; height: 30px; border-radius: 8px;
-      background: linear-gradient(135deg, #4f8ef7, #a78bfa);
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
-    .sidebar-logo-icon svg { width: 15px; height: 15px; }
-    .sidebar-logo-text { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -.2px; }
-    .sidebar-logo-badge {
-      margin-left: auto; font-family: var(--mono); font-size: 9px; font-weight: 500;
-      color: var(--accent); background: var(--accent-dim);
-      border: 1px solid rgba(79,142,247,0.25); border-radius: 4px;
-      padding: 2px 6px; letter-spacing: .5px; text-transform: uppercase;
-    }
-
-    .sidebar-section { padding: 20px 12px 8px; flex-shrink: 0; }
-    .sidebar-section-label {
+    .nav-section { padding: 0 12px; margin-bottom: 6px; }
+    .nav-label {
       font-family: var(--mono); font-size: 10px; color: var(--text-dim);
       letter-spacing: .12em; text-transform: uppercase;
-      padding: 0 8px; margin-bottom: 4px; margin-top: 8px;
+      padding: 0 8px; margin-bottom: 4px; margin-top: 16px;
     }
     .nav-item {
       display: flex; align-items: center; gap: 10px;
@@ -86,32 +72,20 @@
     }
     .nav-item:hover { background: var(--surface2); color: var(--text); }
     .nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 500; }
+    .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; }
     .nav-item.active .nav-icon { opacity: 1; }
-    .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .6; }
-    .nav-badge {
-      margin-left: auto; font-family: var(--mono); font-size: 10px; font-weight: 500;
-      background: var(--surface2); color: var(--text-muted);
-      border: 1px solid var(--border); border-radius: 20px;
-      padding: 1px 7px; min-width: 20px; text-align: center;
-    }
-    .nav-badge.green { background: var(--success-dim); color: var(--success); border-color: rgba(62,207,142,0.2); }
 
-    .sidebar-spacer { flex: 1; }
-    .sidebar-user {
-      padding: 16px 20px; border-top: 1px solid var(--border);
-      display: flex; align-items: center; gap: 10px;
-      cursor: pointer; transition: var(--transition);
-    }
-    .sidebar-user:hover { background: var(--surface2); }
-    .avatar {
+    .sidebar-footer { margin-top: auto; padding: 16px 20px 0; border-top: 1px solid var(--border); }
+    .client-chip { display: flex; align-items: center; gap: 10px; }
+    .client-avatar {
       width: 30px; height: 30px; border-radius: 50%;
       background: linear-gradient(135deg, #4f8ef7, #a78bfa);
       display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 600; color: white; flex-shrink: 0;
+      font-size: 12px; font-weight: 600; color: white; flex-shrink: 0;
     }
-    .sidebar-user-info { flex: 1; min-width: 0; }
-    .sidebar-user-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sidebar-user-role { font-size: 11px; color: var(--text-muted); margin-top: 1px; font-family: var(--mono); }
+    .client-info { overflow: hidden; }
+    .client-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .client-role { font-size: 11px; color: var(--text-muted); }
 
     /* ── MAIN ── */
     .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
@@ -388,87 +362,6 @@
 </head>
 <body>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <a href="#" class="sidebar-logo">
-      
-      <span class="sidebar-logo-text">CreativeMatch</span>
-      <span class="sidebar-logo-badge">Beta</span>
-    </a>
-
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Platform</div>
-      <a href="#" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-        </svg>
-        Dashboard
-      </a>
-      <a href="#" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        Audiences
-        <span class="nav-badge">24</span>
-      </a>
-      <a href="#" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2"/>
-          <path d="M8 21h8M12 17v4"/>
-        </svg>
-        Creatives
-        <span class="nav-badge green">8</span>
-      </a>
-      <a href="#" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        Analytics
-      </a>
-      <a href="#" class="nav-item active">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
-        </svg>
-        Campaigns
-      </a>
-    </div>
-
-    <div class="sidebar-section">
-      {% comment %} <div class="sidebar-section-label">Workspace</div>
-      <a href="#" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-        </svg>
-        Model Settings
-      </a> {% endcomment %}
-      <a href="#" class="nav-item">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-        Settings
-      </a>
-    </div>
-
-    <div class="sidebar-spacer"></div>
-    <div class="sidebar-user">
-      <div class="avatar">AS</div>
-      <div class="sidebar-user-info">
-        <div class="sidebar-user-name">Aryan Shah</div>
-        <div class="sidebar-user-role">Admin · Creative Match</div>
-      </div>
-      <svg style="width:14px;height:14px;color:var(--text-dim);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-      </svg>
-    </div>
-  </aside>
-
-
   <!-- MAIN -->
   <div class="main">
 
@@ -727,6 +620,8 @@
 
   <script src="{% static 'scripts/sidebar.js' %}"></script>
 <script src="{% static 'scripts/shared.js' %}"></script>
-  
+<script>
+  renderSidebar('campaign');
+</script>
 </body>
 </html>
