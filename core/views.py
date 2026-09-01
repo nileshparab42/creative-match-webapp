@@ -947,6 +947,28 @@ def save_onboarding(request):
     return JsonResponse({"status": "ok"})
 
 
+YOUTUBE_ID_RE = re.compile(
+    r"(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{11})"
+)
+
+
+def get_youtube_thumbnail(video_url):
+    match = YOUTUBE_ID_RE.search(video_url)
+    if not match:
+        return None
+    return f"https://img.youtube.com/vi/{match.group(1)}/hqdefault.jpg"
+
+
+def is_within_last_week(date_str):
+    if not date_str:
+        return False
+    try:
+        creative_date = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return False
+    return datetime.date.today() - creative_date <= datetime.timedelta(days=7)
+
+
 def select_creative(request):
     if not request.user.is_authenticated:
             return render(request, "login.html")
@@ -977,16 +999,44 @@ def select_creative(request):
             links = json.loads(links)
 
         for creative_id, value in links.items():
-            # print("creative_id:", creative_id)
-            print("ad_id:", value.get("ad_id"))
-            print("primary_image:", value.get("primary_image"))
+            primary_image = value.get("primary_image")
+            primary_video = value.get("primary_video")
+            is_video = bool(primary_video) and not primary_image
+            creative_date = value.get("date")
+
             creative_data.append({
                 "creative_id": creative_id,
                 "ad_id": value.get("ad_id"),
-                "primary_image": value.get("primary_image"),
+                "date": creative_date,
+                "primary_image": primary_image,
+                "primary_video": primary_video,
+                "is_video": is_video,
+                "thumbnail": primary_image or (
+                    get_youtube_thumbnail(primary_video) if primary_video else None
+                ),
+                "is_new": is_within_last_week(creative_date),
             })
 
-    return render(request, "select-creative.html", {"creative_data": creative_data})
+    sort_by = request.GET.get("sort", "date_desc")
+
+    def sort_date_key(creative):
+        try:
+            return datetime.datetime.strptime(creative["date"], "%Y-%m-%d").date()
+        except (TypeError, ValueError):
+            return datetime.date.min
+
+    if sort_by == "date_asc":
+        creative_data.sort(key=sort_date_key)
+    elif sort_by == "type":
+        creative_data.sort(key=lambda c: not c["is_video"])
+    else:
+        sort_by = "date_desc"
+        creative_data.sort(key=sort_date_key, reverse=True)
+
+    return render(request, "select-creative.html", {
+        "creative_data": creative_data,
+        "sort_by": sort_by,
+    })
 
 
 def google_login(request):
