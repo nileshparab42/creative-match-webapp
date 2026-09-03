@@ -33,6 +33,10 @@
               Select creatives
           </button>
       </form> {% endcomment %}
+      <button type="button" class="btn" onclick="openHowToUseModal()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M8 11V7.5" stroke-linecap="round"/><circle cx="8" cy="5.2" r="0.6" fill="currentColor" stroke="none"/></svg>
+        How to use
+      </button>
       <a href="/select-creatives/" class="btn btn-primary" style="text-decoration:none;">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="4,2 14,8 4,14"/></svg>
         Select creatives
@@ -241,12 +245,53 @@
   </div>
 </main>
 
+<!-- HOW TO USE MODAL -->
+<div class="modal-overlay" id="howToUseModal" style="display:none;" onclick="if(event.target===this) closeHowToUseModal()">
+  <div class="modal" style="width:640px;max-width:92vw;padding:24px;">
+    <div class="modal-tag">Guide</div>
+    <div class="modal-title" style="margin-bottom:4px;">How to use Creative Match</div>
+    <div class="modal-sub" style="margin-bottom:16px;">A quick walkthrough of the platform.</div>
+    <div style="position:relative;width:100%;padding-top:56.25%;border-radius:var(--radius);overflow:hidden;background:#000;border:1px solid var(--border);">
+      <iframe
+        id="howToUseVideoFrame"
+        src=""
+        data-src="https://drive.google.com/file/d/1rboD904x_8vZeC_HZ4-qNnma11ZcXPzr/preview"
+        style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
+        allow="autoplay; fullscreen"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div class="modal-footer" style="justify-content:flex-end;margin-top:20px;padding-top:16px;">
+      <button type="button" class="btn" onclick="closeHowToUseModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 {{ campaigns_json|json_script:"campaigns-data" }}
 <script src="{% static 'scripts/sidebar.js' %}"></script>
 <script src="{% static 'scripts/shared.js' %}"></script>
 <script>
   renderSidebar('dashboard');
   renderCreativeModal();
+  openHowToUseModal();
+
+  function openHowToUseModal() {
+    const overlay = document.getElementById('howToUseModal');
+    const frame = document.getElementById('howToUseVideoFrame');
+    frame.src = frame.getAttribute('data-src');
+    overlay.style.display = 'flex';
+  }
+
+  function closeHowToUseModal() {
+    const overlay = document.getElementById('howToUseModal');
+    const frame = document.getElementById('howToUseVideoFrame');
+    overlay.style.display = 'none';
+    frame.src = '';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeHowToUseModal();
+  });
 </script>
 </body>
 </html>
