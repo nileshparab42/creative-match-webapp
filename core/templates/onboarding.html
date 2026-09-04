@@ -11,6 +11,8 @@
 <style>
   body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
   .onboard-wrap { width: 520px; background: var(--surface); border: 1px solid var(--border-active); border-radius: var(--radius-lg); padding: 32px; }
+  .form-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); cursor: pointer; }
+  .form-check input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent, #6366f1); }
 </style>
 </head>
 <body>
@@ -52,8 +54,21 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <label class="form-check">
+        <input type="checkbox" id="mccEnabled" onchange="toggleMccField()">
+        <span>I have an MCC / agency account ID to add</span>
+      </label>
+    </div>
+
+    <div class="form-group" id="mccGroup" style="display:none;">
+      <label class="form-label">MCC ID</label>
+      <input class="form-input" placeholder="e.g. 123-456-7890" id="mccid">
+      <div class="form-hint">Visible in your Google Ads MCC account header</div>
+    </div>
+
     <div class="info-box">
-      <strong>Note:</strong> Your MCC / agency login ID is pre-configured by LS Digital — you don't need to enter it.
+      <strong>Note:</strong> Your MCC / agency login ID is pre-configured by LS Digital — you don't need to enter it unless it differs for this account.
     </div>
   </div>
 
@@ -191,6 +206,15 @@
 let currentStep = 1;
 const totalSteps = 3;
 
+function toggleMccField() {
+  const enabled = document.getElementById('mccEnabled').checked;
+  document.getElementById('mccGroup').style.display = enabled ? '' : 'none';
+  if (!enabled) {
+    document.getElementById('mccid').value = '';
+    document.getElementById('mccid').classList.remove('error');
+  }
+}
+
 function onboardNext() {
   console.log("Current Step:", currentStep);
   console.log("Total Steps:", totalSteps);
@@ -201,6 +225,12 @@ function onboardNext() {
     if (!gads) { document.getElementById('gadsid').classList.add('error'); return; }
     document.getElementById('ga4id').classList.remove('error');
     document.getElementById('gadsid').classList.remove('error');
+
+    if (document.getElementById('mccEnabled').checked) {
+      const mcc = document.getElementById('mccid').value;
+      if (!mcc) { document.getElementById('mccid').classList.add('error'); return; }
+      document.getElementById('mccid').classList.remove('error');
+    }
   }
   if (currentStep === 2) {
     const mid = document.getElementById('measurementid').value;
@@ -217,6 +247,8 @@ function onboardNext() {
       ga4accid: document.getElementById('ga4accid').value,
       gadsid: document.getElementById('gadsid').value,
       bqpath: document.getElementById('bqpath').value,
+      mccEnabled: document.getElementById('mccEnabled').checked,
+      mccid: document.getElementById('mccEnabled').checked ? document.getElementById('mccid').value : '',
       measurementid: document.getElementById('measurementid').value,
       mpsecret: document.getElementById('mpsecret').value,
       business: document.getElementById('business').value,

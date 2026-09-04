@@ -28,6 +28,7 @@ class OnboardingProfile(models.Model):
     ga4_property_id = models.CharField(max_length=50)
     ga4_account_id = models.CharField(max_length=50, null=True, blank=True)
     gads_customer_id = models.CharField(max_length=50)
+    mcc_id = models.CharField(max_length=50, null=True, blank=True)
     bigquery_dataset_path = models.CharField(max_length=255, null=True, blank=True)
     ga4_measurement_id = models.CharField(max_length=50)
     mp_api_secret = models.CharField(max_length=255)  # consider encrypting at rest

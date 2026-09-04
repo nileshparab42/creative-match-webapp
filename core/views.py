@@ -929,6 +929,7 @@ def save_onboarding(request):
         ga4_property_id=data.get("ga4id"),
         ga4_account_id=data.get("ga4accid"),
         gads_customer_id=data.get("gadsid"),
+        mcc_id=data.get("mccid"),
         bigquery_dataset_path=data.get("bqpath"),
         ga4_measurement_id=data.get("measurementid"),
         mp_api_secret=data.get("mpsecret"),
